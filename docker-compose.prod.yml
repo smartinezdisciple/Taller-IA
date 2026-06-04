@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taller-db-prod
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USER:-taller_user}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-taller_pass}
+      POSTGRES_DB: ${DB_DATABASE:-taller_repuestos}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - taller-prod-network
+
+  backend:
+    build:
+      context: ./servidor
+      dockerfile: Dockerfile
+    container_name: taller-backend-prod
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: ${DB_USER:-taller_user}
+      DB_PASSWORD: ${DB_PASSWORD:-taller_pass}
+      DB_DATABASE: ${DB_DATABASE:-taller_repuestos}
+      JWT_SECRET: ${JWT_SECRET:-mi_secreto_super_seguro_123!}
+      COOKIE_SECRET: ${COOKIE_SECRET:-mi_secreto_cookies_456!}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
+      PORCENTAJE_IVA: ${PORCENTAJE_IVA:-15.00}
+    depends_on:
+      - db
+    networks:
+      - taller-prod-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: taller-nginx-prod
+    restart: always
+    ports:
+      - "80:80"
+      # En producción, descomentar puertos SSL si dispone de certificados
+      # - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # En producción, montar carpeta de certificados SSL
+      # - /etc/letsencrypt:/etc/letsencrypt:ro
+    depends_on:
+      - backend
+    networks:
+      - taller-prod-network
+
+volumes:
+  postgres_prod_data:
+
+networks:
+  taller-prod-network:
+    driver: bridge
