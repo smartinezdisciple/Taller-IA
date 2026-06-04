@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useCarritoStore } from '../store/carritoStore';
-import { analizarImagenConIA } from '../servicios/servicioIA';
+import { analizarImagenConIA, ResultadoIA } from '../servicios/servicioIA';
 import api from '../servicios/api';
 
 interface Repuesto {
@@ -58,7 +58,7 @@ export default function Ventas() {
 
   // IA Filtering State
   const [iaDetecting, setIaDetecting] = useState(false);
-  const [iaResult, setIaResult] = useState<{ marca: string; color: string } | null>(null);
+  const [iaResult, setIaResult] = useState<ResultadoIA | null>(null);
   const [iaError, setIaError] = useState('');
 
   // Customers
@@ -355,6 +355,12 @@ export default function Ventas() {
                   <div>
                     <span className="font-bold">IA detectó: </span>
                     <span className="capitalize">{iaResult.marca}</span>
+                    {iaResult.modelo && (
+                      <>
+                        <span> • Modelo: </span>
+                        <span className="capitalize">{iaResult.modelo}</span>
+                      </>
+                    )}
                     {iaResult.color && (
                       <>
                         <span> • Color: </span>

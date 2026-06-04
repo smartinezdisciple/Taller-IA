@@ -1,6 +1,7 @@
 export interface ResultadoIA {
   marca: string;
   color: string;
+  modelo: string;
 }
 
 // En desarrollo usamos el proxy de Vite (/ia -> localhost:6000) para evitar CORS.
@@ -35,13 +36,14 @@ export async function analizarImagenConIA(imagen: File, maxIntentos = 3): Promis
 
       const datos = await response.json();
 
-      if (!datos || typeof datos.marca !== 'string' || typeof datos.color !== 'string') {
+      if (!datos || typeof datos.marca !== 'string' || typeof datos.color !== 'string' || typeof datos.modelo !== 'string') {
         throw new Error('Formato de respuesta de IA inválido.');
       }
 
       return {
         marca: datos.marca,
         color: datos.color,
+        modelo: datos.modelo,
       };
     } catch (error: any) {
       clearTimeout(timeoutId);
