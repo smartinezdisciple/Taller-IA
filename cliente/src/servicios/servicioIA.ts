@@ -3,7 +3,9 @@ export interface ResultadoIA {
   color: string;
 }
 
-const IA_URL = (import.meta as any).env.VITE_IA_URL || 'http://localhost:6000';
+// En desarrollo usamos el proxy de Vite (/ia -> localhost:6000) para evitar CORS.
+// En producción se puede sobreescribir con VITE_IA_URL en el .env
+const IA_URL = (import.meta as any).env.VITE_IA_URL || '/ia';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 

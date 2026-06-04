@@ -7,7 +7,7 @@ from flask_cors import CORS
 import car_classifier
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization"]}})
 
 print("[INFO] Cargando modelos de Inteligencia Artificial (YOLOv3 + Spectrico)...", flush=True)
 classifier = car_classifier.CarClassifier(0.5, 0.3)
