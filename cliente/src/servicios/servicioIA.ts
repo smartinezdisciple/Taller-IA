@@ -1,9 +1,12 @@
 export interface ResultadoIA {
   marca: string;
   color: string;
+  modelo: string;
 }
 
-const IA_URL = (import.meta as any).env.VITE_IA_URL || 'http://localhost:6000';
+// En desarrollo usamos el proxy de Vite (/ia -> localhost:6000) para evitar CORS.
+// En producción se puede sobreescribir con VITE_IA_URL en el .env
+const IA_URL = (import.meta as any).env.VITE_IA_URL || '/ia';
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -33,13 +36,14 @@ export async function analizarImagenConIA(imagen: File, maxIntentos = 3): Promis
 
       const datos = await response.json();
 
-      if (!datos || typeof datos.marca !== 'string' || typeof datos.color !== 'string') {
+      if (!datos || typeof datos.marca !== 'string' || typeof datos.color !== 'string' || typeof datos.modelo !== 'string') {
         throw new Error('Formato de respuesta de IA inválido.');
       }
 
       return {
         marca: datos.marca,
         color: datos.color,
+        modelo: datos.modelo,
       };
     } catch (error: any) {
       clearTimeout(timeoutId);
