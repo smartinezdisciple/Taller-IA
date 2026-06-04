@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import { pool } from '../config/db.js';
 import { autenticar, RequestAutenticado } from '../middleware/autenticar.js';
 import { autorizar } from '../middleware/autorizar.js';
+import { validarContrasena } from '../util/helpers.js';
 
 const router = Router();
 
@@ -225,9 +226,7 @@ router.put('/cambiar-contrasena', autenticar, async (req: RequestAutenticado, re
     return res.status(400).json({ mensaje: 'Contraseña actual y nueva son requeridas.' });
   }
 
-  // Password Validation: 12 chars minimum, 1 uppercase, 1 number, 1 special character
-  const regex = /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':",\\|.<>\/?]).{12,}$/;
-  if (!regex.test(contrasena_nueva)) {
+  if (!validarContrasena(contrasena_nueva)) {
     return res.status(400).json({
       mensaje: 'La nueva contraseña debe tener al menos 12 caracteres, incluir una mayúscula, un número y un carácter especial.'
     });

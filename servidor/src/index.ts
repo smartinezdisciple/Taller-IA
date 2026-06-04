@@ -60,11 +60,12 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Run server and seed DB
-app.listen(PORT, async () => {
-  console.log(`[Servidor] Escuchando en http://localhost:${PORT}`);
-  // Seed the seed users
-  await sembrarUsuarios();
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, async () => {
+    console.log(`[Servidor] Escuchando en http://localhost:${PORT}`);
+    // Seed the seed users
+    await sembrarUsuarios();
+  });
+}
 
 export default app;
