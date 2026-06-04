@@ -123,8 +123,9 @@ router.get('/', autenticar, autorizar(['administrador', 'vendedor', 'comprador']
     const isUserAdmin = req.usuario?.rol === 'administrador';
     const repuestos = dataRes.rows.map(row => {
       if (!isUserAdmin) {
-        const { precio_costo, ...rest } = row;
-        return rest;
+        const copy = { ...row };
+        delete copy.precio_costo;
+        return copy;
       }
       return row;
     });

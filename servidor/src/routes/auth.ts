@@ -1,4 +1,4 @@
-import { Router, Response } from 'express';
+import { Router } from 'express';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import crypto from 'crypto';
@@ -136,7 +136,7 @@ router.post('/refresh', async (req, res) => {
 
     try {
       decoded = jwt.verify(refreshToken, cookieSecret);
-    } catch (err) {
+    } catch (_err) {
       return res.status(401).json({ mensaje: 'Token de refresco corrupto.' });
     }
 

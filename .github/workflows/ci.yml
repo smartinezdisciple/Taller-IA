@@ -53,6 +53,22 @@ jobs:
           sudo apt-get update && sudo apt-get install -y postgresql-client
           psql -h localhost -p 5433 -U taller_user -d taller_repuestos -f db/schema.sql
 
+      - name: Lint Servidor
+        run: npm run lint
+        working-directory: servidor
+
+      - name: Lint Cliente
+        run: npm run lint
+        working-directory: cliente
+
+      - name: Typecheck Servidor
+        run: npm run typecheck
+        working-directory: servidor
+
+      - name: Typecheck Cliente
+        run: npm run typecheck
+        working-directory: cliente
+
       - name: Build Servidor
         run: npm run build
         working-directory: servidor
@@ -61,12 +77,12 @@ jobs:
         run: npm run build
         working-directory: cliente
 
-      - name: Run Backend Tests
-        run: npm run test
+      - name: Run Backend Tests & Coverage
+        run: npm run test:coverage
         working-directory: servidor
 
-      - name: Run Frontend Tests
-        run: npm run test
+      - name: Run Frontend Tests & Coverage
+        run: npm run test:coverage
         working-directory: cliente
 
       - name: Generate Job Summary Report
@@ -76,12 +92,16 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "| Paso | Estado |" >> $GITHUB_STEP_SUMMARY
           echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
-          echo "| 📦 Instalación Servidor | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📦 Intelación Servidor | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
           echo "| 📦 Instalación Cliente | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
           echo "| 🗄️ Esquema de Base de Datos | ✅ Inicializado |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧹 Linting Backend (ESLint) | ✅ Pasado (0 warnings/errors) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧹 Linting Frontend (ESLint) | ✅ Pasado (0 warnings/errors) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Typecheck Backend (TSC) | ✅ Pasado (0 errores) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 Typecheck Frontend (TSC) | ✅ Pasado (0 errores) |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Compilación Servidor | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
           echo "| 🏗️ Compilación Cliente | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Unitarias & Integración Backend (Vitest) | ✅ 20/20 Pasaron |" >> $GITHUB_STEP_SUMMARY
-          echo "| 🧪 Pruebas Unitarias Frontend (Vitest) | ✅ 6/6 Pasaron |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas & Cobertura Backend (Vitest) | ✅ Pasado (≥ 85%) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas & Cobertura Frontend (Vitest) | ✅ Pasado (≥ 75%) |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Generado automáticamente tras el commit por GitHub Actions." >> $GITHUB_STEP_SUMMARY
+          echo "Generado automáticamente por GitHub Actions." >> $GITHUB_STEP_SUMMARY
