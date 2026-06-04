@@ -107,4 +107,67 @@ router.get('/ventas-por-mes', autenticar, autorizar(['administrador']), async (r
   }
 });
 
+// GET /api/reportes/top-repuestos
+// Ranking de productos más vendidos con rango de fechas (desde, hasta, por defecto últimos 12 meses)
+router.get('/top-repuestos', autenticar, autorizar(['administrador']), async (req, res) => {
+  try {
+    const desde = req.query.desde || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + ' 00:00:00';
+    const hasta = req.query.hasta || new Date().toISOString().split('T')[0] + ' 23:59:59';
+
+    const query = `
+      SELECT r.id, r.sku, r.nombre_repuesto,
+             COALESCE(SUM(dv.cantidad), 0)::int AS unidades_vendidas,
+             COALESCE(SUM(dv.subtotal_linea), 0)::float AS ingresos_totales
+      FROM detalle_ventas dv
+      JOIN repuestos r ON dv.id_repuesto = r.id
+      JOIN ventas v ON dv.id_venta = v.id
+      WHERE v.creado_en >= $1 AND v.creado_en <= $2
+      GROUP BY r.id, r.sku, r.nombre_repuesto
+      ORDER BY unidades_vendidas DESC
+    `;
+    const reportRes = await pool.query(query, [desde, hasta]);
+    return res.status(200).json(reportRes.rows);
+  } catch (error) {
+    console.error('[Top Repuestos Report] Error:', error);
+    return res.status(500).json({ mensaje: 'Error al generar reporte de top repuestos.' });
+  }
+});
+
+// GET /api/reportes/mejores-clientes
+// Ranking de clientes por monto de compras con rango de fechas (desde, hasta, por defecto últimos 12 meses)
+router.get('/mejores-clientes', autenticar, autorizar(['administrador']), async (req, res) => {
+  try {
+    const desde = req.query.desde || new Date(Date.now() - 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] + ' 00:00:00';
+    const hasta = req.query.hasta || new Date().toISOString().split('T')[0] + ' 23:59:59';
+
+    const query = `
+      SELECT c.id, c.nombres, c.apellidos,
+             COALESCE(SUM(v.total), 0)::float AS monto_total,
+             COUNT(v.id)::int AS total_compras
+      FROM ventas v
+      JOIN clientes c ON v.id_cliente = c.id
+      WHERE v.creado_en >= $1 AND v.creado_en <= $2
+      GROUP BY c.id, c.nombres, c.apellidos
+      ORDER BY monto_total DESC
+    `;
+    const reportRes = await pool.query(query, [desde, hasta]);
+    return res.status(200).json(reportRes.rows);
+  } catch (error) {
+    console.error('[Mejores Clientes Report] Error:', error);
+    return res.status(500).json({ mensaje: 'Error al generar reporte de mejores clientes.' });
+  }
+});
+
+// GET /api/reportes/stock-bajo
+// Listado de repuestos en stock crítico (cantidad_stock <= stock_minimo)
+router.get('/stock-bajo', autenticar, autorizar(['administrador']), async (req, res) => {
+  try {
+    const reportRes = await pool.query('SELECT * FROM vista_stock_bajo ORDER BY cantidad_stock ASC');
+    return res.status(200).json(reportRes.rows);
+  } catch (error) {
+    console.error('[Stock Bajo Report] Error:', error);
+    return res.status(500).json({ mensaje: 'Error al obtener stock bajo.' });
+  }
+});
+
 export default router;

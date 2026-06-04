@@ -3,6 +3,7 @@ import { pool } from '../config/db.js';
 import { autenticar, RequestAutenticado } from '../middleware/autenticar.js';
 import { autorizar } from '../middleware/autorizar.js';
 import { registrarAuditoria } from '../config/auditoria.js';
+import { calcularSubtotal, calcularIva, calcularTotal } from '../util/helpers.js';
 
 const router = Router();
 
@@ -107,7 +108,6 @@ router.post('/ventas', autenticar, autorizar(['administrador', 'vendedor']), asy
 
     await dbClient.query('BEGIN');
 
-    let subtotal = 0;
     const validatedItems: any[] = [];
 
     // 2. Validar cada item
@@ -139,8 +139,6 @@ router.post('/ventas', autenticar, autorizar(['administrador', 'vendedor']), asy
       }
 
       const precioUnitario = parseFloat(repuesto.precio_venta);
-      const subtotalLinea = precioUnitario * parsedCantidad;
-      subtotal += subtotalLinea;
 
       validatedItems.push({
         repuesto,
@@ -149,10 +147,10 @@ router.post('/ventas', autenticar, autorizar(['administrador', 'vendedor']), asy
       });
     }
 
-    // Calculate taxes (15% Nicaraguan VAT default, configurable via process.env.PORCENTAJE_IVA)
+    const subtotal = calcularSubtotal(validatedItems.map(i => ({ cantidad: i.cantidad, precio: i.precioUnitario })));
     const porcentajeIva = parseFloat(process.env.PORCENTAJE_IVA || '15.00');
-    const montoIva = subtotal * (porcentajeIva / 100);
-    const total = subtotal + montoIva;
+    const montoIva = calcularIva(subtotal, porcentajeIva);
+    const total = calcularTotal(subtotal, montoIva);
     const creadoPor = req.usuario?.id;
 
     // 3. Crear cabecera de la venta (Trigger trg_numero_venta autogenera numero_venta)

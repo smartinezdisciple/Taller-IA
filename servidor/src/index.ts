@@ -9,6 +9,7 @@ import { sembrarUsuarios } from './config/seed.js';
 
 import repuestosRouter from './routes/repuestos.js';
 import ventasRouter from './routes/ventas.js';
+import comprasRouter from './routes/compras.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/repuestos', repuestosRouter);
 app.use('/api', ventasRouter);
+app.use('/api', comprasRouter);
 
 // Alias /api/marcas to the brands endpoint in repuestosRouter
 app.get('/api/marcas', (req, res, next) => {
@@ -60,11 +62,12 @@ app.get('/health', async (req, res) => {
   }
 });
 
-// Run server and seed DB
-app.listen(PORT, async () => {
-  console.log(`[Servidor] Escuchando en http://localhost:${PORT}`);
-  // Seed the seed users
-  await sembrarUsuarios();
-});
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(PORT, async () => {
+    console.log(`[Servidor] Escuchando en http://localhost:${PORT}`);
+    // Seed the seed users
+    await sembrarUsuarios();
+  });
+}
 
 export default app;

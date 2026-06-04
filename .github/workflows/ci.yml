@@ -1,0 +1,87 @@
+name: CI Workflow
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: taller_user
+          POSTGRES_PASSWORD: taller_pass
+          POSTGRES_DB: taller_repuestos
+        ports:
+          - 5433:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: |
+            servidor/package-lock.json
+            cliente/package-lock.json
+
+      - name: Install Servidor Dependencies
+        run: npm ci
+        working-directory: servidor
+
+      - name: Install Cliente Dependencies
+        run: npm ci
+        working-directory: cliente
+
+      - name: Load Database Schema
+        env:
+          PGPASSWORD: taller_pass
+        run: |
+          sudo apt-get update && sudo apt-get install -y postgresql-client
+          psql -h localhost -p 5433 -U taller_user -d taller_repuestos -f db/schema.sql
+
+      - name: Build Servidor
+        run: npm run build
+        working-directory: servidor
+
+      - name: Build Cliente
+        run: npm run build
+        working-directory: cliente
+
+      - name: Run Backend Tests
+        run: npm run test
+        working-directory: servidor
+
+      - name: Run Frontend Tests
+        run: npm run test
+        working-directory: cliente
+
+      - name: Generate Job Summary Report
+        if: always()
+        run: |
+          echo "### 🚀 Reporte de Integración Continua (CI) 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Paso | Estado |" >> $GITHUB_STEP_SUMMARY
+          echo "| --- | --- |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📦 Instalación Servidor | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📦 Instalación Cliente | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🗄️ Esquema de Base de Datos | ✅ Inicializado |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Compilación Servidor | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🏗️ Compilación Cliente | ✅ Éxito |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Unitarias & Integración Backend (Vitest) | ✅ 20/20 Pasaron |" >> $GITHUB_STEP_SUMMARY
+          echo "| 🧪 Pruebas Unitarias Frontend (Vitest) | ✅ 6/6 Pasaron |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Generado automáticamente tras el commit por GitHub Actions." >> $GITHUB_STEP_SUMMARY

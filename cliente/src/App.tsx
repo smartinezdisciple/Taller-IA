@@ -10,6 +10,7 @@ import Clientes from './paginas/Clientes';
 import Personal from './paginas/Personal';
 import Perfil from './paginas/Perfil';
 import Inventario from './paginas/Inventario';
+import Reportes from './paginas/Reportes';
 
 export default function App() {
   return (
@@ -29,6 +30,7 @@ export default function App() {
           <Route path="clientes" element={<Clientes />} />
           <Route path="personal" element={<Personal />} />
           <Route path="perfil" element={<Perfil />} />
+          <Route path="reportes" element={<Reportes />} />
           <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Route>
       </Routes>
