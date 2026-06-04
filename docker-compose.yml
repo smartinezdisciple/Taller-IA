@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: taller-db
+    restart: always
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_USER: taller_user
+      POSTGRES_PASSWORD: taller_pass
+      POSTGRES_DB: taller_repuestos
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - taller-network
+
+  ia:
+    build: ./ia
+    container_name: taller-ia
+    restart: always
+    ports:
+      - "6000:6000"
+    networks:
+      - taller-network
+
+volumes:
+  postgres_data:
+
+networks:
+  taller-network:
+    driver: bridge

@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "error": "#ffb4ab",
+                    "inverse-primary": "#9d4300",
+                    "surface-container-high": "#282a30",
+                    "background": "#111319",
+                    "on-error-container": "#ffdad6",
+                    "status-warning": "#EAB308",
+                    "outline-variant": "#584237",
+                    "secondary-fixed-dim": "#c2c6d7",
+                    "surface": "#111319",
+                    "on-primary-fixed": "#341100",
+                    "secondary-fixed": "#dee2f3",
+                    "on-background": "#e2e2eb",
+                    "table-row-light": "#FFFFFF",
+                    "on-surface": "#e2e2eb",
+                    "outline": "#a78b7d",
+                    "on-secondary-container": "#b4b8c8",
+                    "on-primary": "#552100",
+                    "status-error": "#EF4444",
+                    "text-secondary": "#94A3B8",
+                    "primary-fixed-dim": "#ffb690",
+                    "primary-fixed": "#ffdbca",
+                    "table-row-alt": "#F8FAFC",
+                    "on-tertiary-container": "#2c3242",
+                    "primary": "#ffb690",
+                    "on-tertiary-fixed": "#151b2a",
+                    "surface-card": "#1E2433",
+                    "surface-container": "#1e1f26",
+                    "on-tertiary-fixed-variant": "#414657",
+                    "on-secondary": "#2b303d",
+                    "surface-bright": "#373940",
+                    "on-error": "#690005",
+                    "on-secondary-fixed": "#161b27",
+                    "secondary-container": "#444956",
+                    "tertiary-fixed": "#dde2f7",
+                    "surface-container-highest": "#33343b",
+                    "surface-container-low": "#191b22",
+                    "inverse-surface": "#e2e2eb",
+                    "text-primary": "#F1F5F9",
+                    "tertiary": "#c0c6da",
+                    "surface-tint": "#ffb690",
+                    "error-container": "#93000a",
+                    "on-surface-variant": "#e0c0b1",
+                    "surface-sidebar": "#161B27",
+                    "on-primary-container": "#582200",
+                    "surface-dim": "#111319",
+                    "tertiary-container": "#949aad",
+                    "surface-variant": "#33343b",
+                    "on-tertiary": "#2a3040",
+                    "border-default": "#2D3748",
+                    "inverse-on-surface": "#2e3037",
+                    "secondary": "#c2c6d7",
+                    "on-secondary-fixed-variant": "#424754",
+                    "tertiary-fixed-dim": "#c0c6da",
+                    "status-success": "#22C55E",
+                    "on-primary-fixed-variant": "#783200",
+                    "primary-container": "#f97316",
+                    "surface-container-lowest": "#0c0e14"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.125rem",
+                    "lg": "0.25rem",
+                    "xl": "0.5rem",
+                    "full": "0.75rem"
+            },
+            "spacing": {
+                    "sidebar-collapsed": "68px",
+                    "stack-md": "1rem",
+                    "stack-sm": "0.5rem",
+                    "gutter": "1rem",
+                    "container-padding": "1.5rem",
+                    "sidebar-width": "260px"
+            },
+            "fontFamily": {
+                    "headline-md": ["Rajdhani"],
+                    "headline-lg-mobile": ["Rajdhani"],
+                    "body-lg": ["IBM Plex Sans"],
+                    "label-caps": ["IBM Plex Sans"],
+                    "data-mono": ["IBM Plex Sans"],
+                    "headline-lg": ["Rajdhani"],
+                    "display-lg": ["Rajdhani"],
+                    "body-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                    "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                    "data-mono": ["14px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                    "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                    "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #2D3748; border-radius: 10px; }
+        .glass-panel {
+            background: rgba(30, 36, 51, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(45, 55, 72, 0.5);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md overflow-hidden">
+<!-- Persistent Sidebar -->
+<!-- Sidebar Navigation -->
+<aside class="fixed h-full w-[260px] left-0 top-0 bg-surface-sidebar border-r border-border-default flex flex-col py-6 z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Workshop Pro</h1>
+<p class="font-label-caps text-label-caps text-text-secondary mt-1">Gestión Industrial</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="panel_control.html">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="roles.html">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-caps text-label-caps">Roles</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="ventas.html">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-caps text-label-caps">Ventas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 border-l-2 border-primary text-primary font-bold" href="compras.html">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-caps text-label-caps">Compras</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="clientes.html">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="personal.html">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+<span class="font-label-caps text-label-caps">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="perfil.html">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Configuración</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-primary-container text-on-primary-container font-label-caps text-label-caps py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#EA6C0A] transition-all">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                Nueva Venta
+            </button>
+<div class="mt-6 pt-6 border-t border-border-default">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:text-error transition-colors" href="login.html">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-caps text-label-caps">Cerrar Sesión</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Canvas -->
+<main class="pl-[260px] h-screen flex flex-col">
+<!-- Top Navigation -->
+<header class="fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface border-b border-border-default flex justify-between items-center px-8 z-40">
+<div class="flex items-center gap-4 w-1/2">
+</div>
+<div class="flex items-center gap-6">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">help_outline</span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-border-default">
+<div class="text-right">
+<p class="font-label-caps text-primary leading-tight">Admin Principal</p>
+<p class="text-[10px] text-text-secondary uppercase tracking-widest">Soporte Tecnico</p>
+</div>
+<img alt="Avatar Administrador" class="w-10 h-10 rounded-full border border-primary/30" src="../imagenes/imagen_9.png"/>
+</div>
+</div>
+
+</header>
+<!-- Content Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8 custom-scrollbar">
+<!-- Dashboard Header Section -->
+<section class="flex justify-between items-end">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Compras e Inventario</h2>
+<p class="text-text-secondary font-body-md">Supervisión de stock y gestión de pedidos a proveedores.</p>
+</div>
+<div class="flex gap-3">
+<button class="px-4 py-2 bg-surface-card border border-border-default text-on-surface flex items-center gap-2 rounded-lg hover:border-primary transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+<span class="font-label-caps">Filtrar</span>
+</button>
+<button class="px-6 py-2 bg-primary text-on-primary font-bold rounded-lg flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">add_shopping_cart</span>
+<span class="font-label-caps">Nuevo Pedido</span>
+</button>
+</div>
+</section>
+<!-- KPI Cards Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between group hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary p-2 bg-primary/10 rounded-lg">inventory_2</span>
+<span class="text-status-success font-label-caps text-[10px] bg-status-success/10 px-2 py-1 rounded">+12%</span>
+</div>
+<div class="mt-4">
+<p class="text-text-secondary font-label-caps">Stock Total</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">14,280 <span class="text-sm font-normal text-text-secondary">unid.</span></h3>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between border-status-error/40 hover:border-status-error transition-colors">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-status-error p-2 bg-status-error/10 rounded-lg">warning</span>
+<span class="text-status-error font-label-caps text-[10px] bg-status-error/10 px-2 py-1 rounded">Crítico</span>
+</div>
+<div class="mt-4">
+<p class="text-text-secondary font-label-caps">Stock Crítico</p>
+<h3 class="font-headline-md text-headline-md text-status-error">12 <span class="text-sm font-normal text-text-secondary">items</span></h3>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between border-status-warning/40 hover:border-status-warning transition-colors">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-status-warning p-2 bg-status-warning/10 rounded-lg">priority_high</span>
+<span class="text-status-warning font-label-caps text-[10px] bg-status-warning/10 px-2 py-1 rounded">Aviso</span>
+</div>
+<div class="mt-4">
+<p class="text-text-secondary font-label-caps">Reponer Pronto</p>
+<h3 class="font-headline-md text-headline-md text-status-warning">34 <span class="text-sm font-normal text-text-secondary">items</span></h3>
+</div>
+</div>
+<div class="glass-panel p-6 rounded-xl flex flex-col justify-between hover:border-primary/50 transition-colors">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-tertiary p-2 bg-tertiary/10 rounded-lg">local_shipping</span>
+<span class="text-tertiary font-label-caps text-[10px] bg-tertiary/10 px-2 py-1 rounded">En curso</span>
+</div>
+<div class="mt-4">
+<p class="text-text-secondary font-label-caps">Pedidos Activos</p>
+<h3 class="font-headline-md text-headline-md text-on-surface">8 <span class="text-sm font-normal text-text-secondary">facturas</span></h3>
+</div>
+</div>
+</div>
+<!-- Main Inventory Layout -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+<!-- Table Section: Inventory & Orders -->
+<div class="lg:col-span-2 space-y-6">
+<div class="bg-surface-card border border-border-default rounded-xl overflow-hidden shadow-2xl shadow-black/40">
+<div class="p-6 border-b border-border-default flex justify-between items-center bg-surface-container-low">
+<h4 class="font-headline-md text-on-surface">Repuestos en Alerta</h4>
+<a class="text-primary font-label-caps hover:underline" href="#">Ver todo el inventario</a>
+</div>
+<!-- Barra de búsqueda de la tabla -->
+<div class="p-4 border-b border-border-default bg-surface-container-low/50 flex items-center justify-between gap-4">
+  <div class="relative w-full max-w-xs">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm" data-icon="search">search</span>
+    <input class="w-full bg-surface-sidebar border border-border-default rounded-lg pl-10 pr-4 py-2 focus:border-primary-container outline-none text-body-sm placeholder:text-text-secondary/50 transition-all focus:ring-1 focus:ring-primary-container" placeholder="Buscar..." type="text" id="tableSearch"/>
+  </div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-surface-container-high">
+<tr>
+<th class="px-6 py-4 font-label-caps text-text-secondary border-b border-border-default">REPUESTO</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary border-b border-border-default">CATEGORÍA</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary border-b border-border-default">STOCK ACT.</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary border-b border-border-default">ESTADO</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary border-b border-border-default">ACCIÓN</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-default">
+<tr class="hover:bg-surface-container-high/50 transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-background border border-border-default flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="Close up high quality photograph of a metallic car engine piston head on a dark professional workshop background. The lighting is cinematic with orange highlights reflecting off the polished metal surface, emphasizing a technical and industrial aesthetic. Sharp focus on mechanical details." src="../imagenes/imagen_10.png"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Pistón Kit - Mazda 3</p>
+<p class="text-[10px] text-text-secondary font-data-mono uppercase">SKU: PK-MZ3-002</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-secondary">Motor</td>
+<td class="px-6 py-4 font-data-mono font-bold text-status-error">02</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-status-error/10 text-status-error text-[10px] font-bold rounded uppercase tracking-tighter">Bajo Crítico</span>
+</td>
+<td class="px-6 py-4">
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-all">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-background border border-border-default flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="Professional studio photograph of a ventilated disc brake for a high performance vehicle. The metal has a cool bluish tint with crisp edges against a dark charcoal industrial background. Subtle technical lighting highlights the precision drilling and texture of the cast iron component." src="../imagenes/imagen_13.png"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Discos de Freno - Brembo</p>
+<p class="text-[10px] text-text-secondary font-data-mono uppercase">SKU: DF-BRM-88</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-secondary">Frenos</td>
+<td class="px-6 py-4 font-data-mono font-bold text-status-warning">08</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-status-warning/10 text-status-warning text-[10px] font-bold rounded uppercase tracking-tighter">Reponer</span>
+</td>
+<td class="px-6 py-4">
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-all">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-background border border-border-default flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="A macro shot of a car radiator core showing the intricate cooling fins and structural aluminum frame. The image is captured with a shallow depth of field, focusing on the metallic grid pattern. The color palette is composed of cold silver tones and deep shadows, giving it a technical, mechanical feel." src="../imagenes/imagen_11.png"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Radiador Reforzado</p>
+<p class="text-[10px] text-text-secondary font-data-mono uppercase">SKU: RAD-HVT-X</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-secondary">Enfriamiento</td>
+<td class="px-6 py-4 font-data-mono font-bold text-status-error">01</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-status-error/10 text-status-error text-[10px] font-bold rounded uppercase tracking-tighter">Bajo Crítico</span>
+</td>
+<td class="px-6 py-4">
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-all">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-surface-container-high/50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded bg-background border border-border-default flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover opacity-80" data-alt="Detailed view of multiple spark plugs arranged in a systematic row. The white ceramic insulators contrast with the dark metallic threads and tips. Warm workshop lighting creates soft glints on the metal surfaces, reflecting a professional atmosphere of automotive maintenance and precision tuning." src="../imagenes/imagen_12.png"/>
+</div>
+<div>
+<p class="font-bold text-on-surface">Bujías Iridium NGK</p>
+<p class="text-[10px] text-text-secondary font-data-mono uppercase">SKU: BJ-NGK-IR</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-secondary">Ignición</td>
+<td class="px-6 py-4 font-data-mono font-bold text-status-warning">15</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 bg-status-warning/10 text-status-warning text-[10px] font-bold rounded uppercase tracking-tighter">Reponer</span>
+</td>
+<td class="px-6 py-4">
+<button class="p-2 text-primary hover:bg-primary/10 rounded transition-all">
+<span class="material-symbols-outlined">shopping_cart_checkout</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Recent Orders to Suppliers -->
+<div class="bg-surface-card border border-border-default rounded-xl overflow-hidden">
+<div class="p-6 border-b border-border-default flex justify-between items-center">
+<h4 class="font-headline-md text-on-surface">Pedidos Recientes</h4>
+<div class="flex gap-2">
+<span class="text-[10px] px-2 py-1 bg-primary/10 text-primary border border-primary/20 rounded font-bold uppercase tracking-widest">En tránsito</span>
+<span class="text-[10px] px-2 py-1 bg-surface-container-high text-text-secondary border border-border-default rounded font-bold uppercase tracking-widest">Recibidos</span>
+</div>
+</div>
+<div class="p-0">
+<div class="grid grid-cols-1 divide-y divide-border-default">
+<!-- Order Item -->
+<div class="p-6 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-6">
+<div class="text-center bg-surface-container-high p-2 rounded w-16">
+<p class="text-[10px] font-label-caps text-text-secondary">MAY</p>
+<p class="font-headline-md text-primary leading-none">24</p>
+</div>
+<div>
+<h5 class="font-bold text-on-surface">Distribuidora Diesel S.A.</h5>
+<p class="text-sm text-text-secondary">Factura #ORD-2024-882 | 24 Items</p>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-right">
+<p class="text-sm font-bold text-on-surface">$3,420.00</p>
+<p class="text-[10px] text-status-success font-bold flex items-center justify-end gap-1">
+<span class="material-symbols-outlined text-xs">local_shipping</span> EN TRÁNSITO
+                                            </p>
+</div>
+<button class="material-symbols-outlined text-text-secondary group-hover:text-primary">chevron_right</button>
+</div>
+</div>
+<!-- Order Item -->
+<div class="p-6 flex items-center justify-between hover:bg-surface-container-low transition-colors group">
+<div class="flex items-center gap-6">
+<div class="text-center bg-surface-container-high p-2 rounded w-16">
+<p class="text-[10px] font-label-caps text-text-secondary">MAY</p>
+<p class="font-headline-md text-primary leading-none">21</p>
+</div>
+<div>
+<h5 class="font-bold text-on-surface">Importadora Repuestos J&amp;R</h5>
+<p class="text-sm text-text-secondary">Factura #ORD-2024-875 | 112 Items</p>
+</div>
+</div>
+<div class="flex items-center gap-8">
+<div class="text-right">
+<p class="text-sm font-bold text-on-surface">$12,150.50</p>
+<p class="text-[10px] text-tertiary font-bold flex items-center justify-end gap-1">
+<span class="material-symbols-outlined text-xs">check_circle</span> RECIBIDO
+                                            </p>
+</div>
+<button class="material-symbols-outlined text-text-secondary group-hover:text-primary">chevron_right</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Content: Notifications & Quick Actions -->
+<div class="space-y-6">
+<!-- Stock Chart/Visual -->
+<div class="bg-surface-card border border-border-default rounded-xl p-6 relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'wght' 700;">query_stats</span>
+</div>
+<h4 class="font-label-caps text-text-secondary mb-4">Salud del Inventario</h4>
+<div class="relative h-48 w-full flex items-end justify-between gap-2 px-2">
+<!-- Simple Animated Bar Chart using Tailwind -->
+<div class="bg-primary/40 w-full rounded-t-sm relative group/bar" style="height: 60%;">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">60%</div>
+</div>
+<div class="bg-primary/60 w-full rounded-t-sm relative group/bar" style="height: 45%;">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">45%</div>
+</div>
+<div class="bg-primary w-full rounded-t-sm relative group/bar" style="height: 85%;">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">85%</div>
+</div>
+<div class="bg-primary/20 w-full rounded-t-sm relative group/bar" style="height: 30%;">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">30%</div>
+</div>
+<div class="bg-primary/80 w-full rounded-t-sm relative group/bar" style="height: 70%;">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">70%</div>
+</div>
+</div>
+<div class="mt-6 space-y-3">
+<div class="flex justify-between text-sm">
+<span class="text-text-secondary">Disponibilidad</span>
+<span class="font-bold text-on-surface">94.2%</span>
+</div>
+<div class="w-full bg-surface-container-highest h-1 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[94%]"></div>
+</div>
+<p class="text-[11px] text-text-secondary italic">Actualizado hace 15 minutos</p>
+</div>
+</div>
+<!-- Quick Alerts -->
+<div class="space-y-4">
+<h4 class="font-label-caps text-text-secondary px-2">Notificaciones de Stock</h4>
+<div class="flex gap-4 p-4 rounded-xl bg-status-error/5 border border-status-error/20">
+<span class="material-symbols-outlined text-status-error">inventory_2</span>
+<div>
+<p class="text-sm font-bold text-on-surface leading-tight">Agotamiento Crítico</p>
+<p class="text-xs text-text-secondary mt-1">Aceite 10W40 Sintético se ha agotado en la sucursal Norte.</p>
+<button class="text-status-error text-[10px] font-bold uppercase mt-2 hover:underline">Solicitar Compra</button>
+</div>
+</div>
+<div class="flex gap-4 p-4 rounded-xl bg-status-warning/5 border border-status-warning/20">
+<span class="material-symbols-outlined text-status-warning">schedule</span>
+<div>
+<p class="text-sm font-bold text-on-surface leading-tight">Retraso en Pedido</p>
+<p class="text-xs text-text-secondary mt-1">El pedido #ORD-2024-882 presenta un retraso de 48h por logística.</p>
+<button class="text-status-warning text-[10px] font-bold uppercase mt-2 hover:underline">Contactar Proveedor</button>
+</div>
+</div>
+</div>
+<!-- Supplier List Mini -->
+<div class="bg-surface-card border border-border-default rounded-xl p-6">
+<h4 class="font-label-caps text-text-secondary mb-4">Principales Proveedores</h4>
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xs text-primary">DS</div>
+<span class="text-sm text-on-surface font-medium">Diesel S.A.</span>
+</div>
+<span class="text-[10px] text-status-success font-bold">Activo</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xs text-primary">JR</div>
+<span class="text-sm text-on-surface font-medium">J&amp;R Imports</span>
+</div>
+<span class="text-[10px] text-status-success font-bold">Activo</span>
+</div>
+<div class="flex items-center justify-between opacity-50">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-surface-container-high flex items-center justify-center font-bold text-xs text-primary">MA</div>
+<span class="text-sm text-on-surface font-medium">Motores Avanzados</span>
+</div>
+<span class="text-[10px] text-text-secondary font-bold">Inactivo</span>
+</div>
+</div>
+<button class="w-full mt-6 py-2 border border-border-default text-text-secondary text-[11px] font-label-caps rounded hover:border-primary transition-colors">Administrar Proveedores</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Scripts -->
+<script>
+        // Simple hover effects for table rows and buttons
+        document.querySelectorAll('tr').forEach(row => {
+            row.addEventListener('mouseenter', () => {
+                row.querySelector('.material-symbols-outlined')?.classList.add('scale-110');
+            });
+            row.addEventListener('mouseleave', () => {
+                row.querySelector('.material-symbols-outlined')?.classList.remove('scale-110');
+            });
+        });
+
+        // Simulating stock level pulse for critical items
+        const criticalStocks = document.querySelectorAll('.text-status-error.font-bold');
+        criticalStocks.forEach(item => {
+            setInterval(() => {
+                item.classList.toggle('opacity-50');
+            }, 800);
+        });
+    </script>
+</body></html>

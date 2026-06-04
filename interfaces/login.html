@@ -1,0 +1,229 @@
+<!DOCTYPE html><html class="dark" lang="es"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>RepuestosApp - Workshop Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&amp;family=IBM+Plex+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "error": "#ffb4ab",
+                        "inverse-primary": "#9d4300",
+                        "surface-container-high": "#282a30",
+                        "background": "#111319",
+                        "on-error-container": "#ffdad6",
+                        "status-warning": "#EAB308",
+                        "outline-variant": "#584237",
+                        "secondary-fixed-dim": "#c2c6d7",
+                        "surface": "#111319",
+                        "on-primary-fixed": "#341100",
+                        "secondary-fixed": "#dee2f3",
+                        "on-background": "#e2e2eb",
+                        "on-surface": "#e2e2eb",
+                        "outline": "#a78b7d",
+                        "on-secondary-container": "#b4b8c8",
+                        "on-primary": "#552100",
+                        "status-error": "#EF4444",
+                        "text-secondary": "#94A3B8",
+                        "primary-fixed-dim": "#ffb690",
+                        "primary-fixed": "#ffdbca",
+                        "on-tertiary-container": "#2c3242",
+                        "primary": "#ffb690",
+                        "on-tertiary-fixed": "#151b2a",
+                        "surface-card": "#1E2433",
+                        "surface-container": "#1e1f26",
+                        "on-tertiary-fixed-variant": "#414657",
+                        "on-secondary": "#2b303d",
+                        "surface-bright": "#373940",
+                        "on-error": "#690005",
+                        "on-secondary-fixed": "#161b27",
+                        "secondary-container": "#444956",
+                        "tertiary-fixed": "#dde2f3",
+                        "surface-container-highest": "#33343b",
+                        "surface-container-low": "#191b22",
+                        "inverse-surface": "#e2e2eb",
+                        "text-primary": "#F1F5F9",
+                        "tertiary": "#c0c6da",
+                        "surface-tint": "#ffb690",
+                        "error-container": "#93000a",
+                        "on-surface-variant": "#e0c0b1",
+                        "surface-sidebar": "#161B27",
+                        "on-primary-container": "#582200",
+                        "surface-dim": "#111319",
+                        "tertiary-container": "#949aad",
+                        "surface-variant": "#33343b",
+                        "on-tertiary": "#2a3040",
+                        "border-default": "#2D3748",
+                        "inverse-on-surface": "#2e3037",
+                        "secondary": "#c2c6d7",
+                        "on-secondary-fixed-variant": "#424754",
+                        "tertiary-fixed-dim": "#c0c6da",
+                        "status-success": "#22C55E",
+                        "on-primary-fixed-variant": "#783200",
+                        "primary-container": "#f97316",
+                        "surface-container-lowest": "#0c0e14"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                    "fontFamily": {
+                        "headline-md": ["Rajdhani"],
+                        "body-lg": ["IBM Plex Sans"],
+                        "label-caps": ["IBM Plex Sans"],
+                        "headline-lg": ["Rajdhani"],
+                        "body-md": ["IBM Plex Sans"]
+                    },
+                    "fontSize": {
+                        "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                        "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .technical-grid {
+            background-image: radial-gradient(rgba(45, 55, 72, 0.4) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .mechanical-glow:focus-within {
+            box-shadow: 0 0 15px rgba(249, 115, 22, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body-md min-h-screen relative overflow-hidden flex items-center justify-center">
+<!-- Background Layer with Industrial Image and Overlay -->
+<div class="absolute inset-0 z-0">
+<img alt="Industrial auto workshop background with several modern cars in a row, cinematic lighting, professional photography, dark and atmospheric, slightly blurred to serve as a UI background, orange accents in lighting to match brand colors." class="w-full h-full object-cover filter blur-sm scale-105 brightness-50" data-alt="A wide-angle cinematic shot of a professional high-tech automotive workshop at night. The scene is filled with mechanical tools, hydraulic lifts, and sophisticated machinery, all rendered with a moody blue and deep grey color palette. High-key orange safety lights and glowing diagnostic screens provide sharp highlights. The atmosphere is systematic, clean, and technologically advanced, echoing a premium industrial aesthetic." src="../imagenes/imagen_1.png">
+<div class="absolute inset-0 bg-gradient-to-br from-background/90 via-background/70 to-transparent"></div>
+<div class="absolute inset-0 technical-grid opacity-30"></div>
+</div>
+<!-- Login Container -->
+<main class="relative z-10 w-full max-w-md px-6 animate-in fade-in zoom-in duration-700">
+<!-- Logo & Brand -->
+<div class="mb-8 text-center">
+<div class="inline-flex items-center justify-center w-16 h-16 bg-primary-container rounded-lg mb-4 shadow-[0_0_20px_rgba(249,115,22,0.3)]">
+<span class="material-symbols-outlined text-white text-4xl" data-icon="engineering">engineering</span>
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Workshop Pro</h1>
+<p class="font-label-caps text-label-caps text-text-secondary uppercase mt-1 tracking-[0.2em]">Gestión Industrial de Repuestos</p>
+</div>
+<!-- Glassmorphism Login Card -->
+<div class="bg-surface-card/40 backdrop-blur-xl border border-border-default/50 p-8 rounded-xl shadow-2xl relative overflow-hidden">
+<!-- Decorative Accent -->
+<div class="absolute top-0 left-0 w-1 h-full bg-primary-container"></div>
+<form class="space-y-6" id="loginForm">
+<!-- Username Field -->
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-text-secondary block px-1" for="username">IDENTIFICACIÓN DE OPERARIO</label>
+<div class="relative group mechanical-glow">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary group-focus-within:text-primary transition-colors" data-icon="person">person</span>
+</div>
+<input class="w-full bg-surface-sidebar/60 border border-border-default text-on-surface py-3 pl-10 pr-4 rounded-lg focus:outline-none focus:border-primary-container transition-all placeholder:text-surface-container-highest" id="username" name="username" placeholder="Usuario o Código ID" required="" type="text">
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<label class="font-label-caps text-label-caps text-text-secondary block px-1" for="password">CLAVE DE ACCESO</label>
+<div class="relative group mechanical-glow">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-text-secondary group-focus-within:text-primary transition-colors" data-icon="lock">lock</span>
+</div>
+<input class="w-full bg-surface-sidebar/60 border border-border-default text-on-surface py-3 pl-10 pr-12 rounded-lg focus:outline-none focus:border-primary-container transition-all placeholder:text-surface-container-highest" id="password" name="password" placeholder="••••••••" required="" type="password">
+<button class="absolute inset-y-0 right-0 pr-3 flex items-center text-text-secondary hover:text-on-surface transition-colors" type="button">
+<span class="material-symbols-outlined" data-icon="visibility">visibility</span>
+</button>
+</div>
+</div>
+<!-- Remember & Forgot -->
+<div class="flex items-center justify-between">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="w-4 h-4 rounded border-border-default bg-surface-sidebar text-primary-container focus:ring-primary-container focus:ring-offset-background" type="checkbox">
+<span class="text-sm text-text-secondary group-hover:text-on-surface transition-colors">Recordar sesión</span>
+</label>
+<a class="text-sm text-primary hover:text-primary-fixed transition-colors font-medium" href="#">¿Olvido su clave?</a>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-primary-container hover:bg-[#EA6C0A] text-white font-headline-md text-headline-md py-4 rounded-lg transition-all transform active:scale-[0.98] flex items-center justify-center gap-2 shadow-lg shadow-primary-container/20 group" type="submit">
+<span class="">ACCEDER AL PANEL</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</form>
+<!-- Footer of Card -->
+<div class="mt-8 pt-6 border-t border-border-default/30 text-center">
+<p class="text-sm text-text-secondary">
+                    ¿Nuevo en el sistema? 
+                    <a class="text-primary font-medium hover:underline decoration-primary/30 underline-offset-4" href="#">Solicitar credenciales</a>
+</p>
+</div>
+</div>
+<!-- System Status Bar -->
+<div class="mt-8 flex justify-center gap-6">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-status-success animate-pulse"></div>
+<span class="font-label-caps text-[10px] text-text-secondary">SERVIDOR: ONLINE</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[14px] text-text-secondary" data-icon="verified_user">verified_user</span>
+<span class="font-label-caps text-[10px] text-text-secondary">ENCRIPTACIÓN AES-256</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="font-label-caps text-[10px] text-text-secondary">v2.4.0-PRO</span>
+</div>
+</div>
+</main>
+<!-- Micro-interaction Script -->
+<script>
+        document.getElementById('loginForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalContent = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>VERIFICANDO...</span>
+            `;
+
+            // Simulating API call
+            setTimeout(() => {
+                btn.classList.replace('bg-primary-container', 'bg-status-success');
+                setTimeout(() => { window.location.href = 'panel_control.html'; }, 1000);
+                btn.innerHTML = `
+                    <span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                    <span>ACCESO CONCEDIDO</span>
+                `;
+            }, 1500);
+        });
+
+        // Toggle Password Visibility
+        const passToggle = document.querySelector('button[type="button"]');
+        const passInput = document.getElementById('password');
+        passToggle.addEventListener('click', () => {
+            const isPass = passInput.type === 'password';
+            passInput.type = isPass ? 'text' : 'password';
+            passToggle.querySelector('span').innerText = isPass ? 'visibility_off' : 'visibility';
+        });
+    </script>
+
+
+</body></html>

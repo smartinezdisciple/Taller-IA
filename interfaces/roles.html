@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&amp;family=IBM+Plex+Sans:wght@300;400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                "error": "#ffb4ab",
+                "inverse-primary": "#9d4300",
+                "surface-container-high": "#282a30",
+                "background": "#111319",
+                "on-error-container": "#ffdad6",
+                "status-warning": "#EAB308",
+                "outline-variant": "#584237",
+                "secondary-fixed-dim": "#c2c6d7",
+                "surface": "#111319",
+                "on-primary-fixed": "#341100",
+                "secondary-fixed": "#dee2f3",
+                "on-background": "#e2e2eb",
+                "table-row-light": "#FFFFFF",
+                "on-surface": "#e2e2eb",
+                "outline": "#a78b7d",
+                "on-secondary-container": "#b4b8c8",
+                "on-primary": "#552100",
+                "status-error": "#EF4444",
+                "text-secondary": "#94A3B8",
+                "primary-fixed-dim": "#ffb690",
+                "primary-fixed": "#ffdbca",
+                "table-row-alt": "#F8FAFC",
+                "on-tertiary-container": "#2c3242",
+                "primary": "#ffb690",
+                "on-tertiary-fixed": "#151b2a",
+                "surface-card": "#1E2433",
+                "surface-container": "#1e1f26",
+                "on-tertiary-fixed-variant": "#414657",
+                "on-secondary": "#2b303d",
+                "surface-bright": "#373940",
+                "on-error": "#690005",
+                "on-secondary-fixed": "#161b27",
+                "secondary-container": "#444956",
+                "tertiary-fixed": "#dde2f7",
+                "surface-container-highest": "#33343b",
+                "surface-container-low": "#191b22",
+                "inverse-surface": "#e2e2eb",
+                "text-primary": "#F1F5F9",
+                "tertiary": "#c0c6da",
+                "surface-tint": "#ffb690",
+                "error-container": "#93000a",
+                "on-surface-variant": "#e0c0b1",
+                "surface-sidebar": "#161B27",
+                "on-primary-container": "#582200",
+                "surface-dim": "#111319",
+                "tertiary-container": "#949aad",
+                "surface-variant": "#33343b",
+                "on-tertiary": "#2a3040",
+                "border-default": "#2D3748",
+                "inverse-on-surface": "#2e3037",
+                "secondary": "#c2c6d7",
+                "on-secondary-fixed-variant": "#424754",
+                "tertiary-fixed-dim": "#c0c6da",
+                "status-success": "#22C55E",
+                "on-primary-fixed-variant": "#783200",
+                "primary-container": "#f97316",
+                "surface-container-lowest": "#0c0e14"
+            },
+            "borderRadius": {
+                "DEFAULT": "0.125rem",
+                "lg": "0.25rem",
+                "xl": "0.5rem",
+                "full": "0.75rem"
+            },
+            "spacing": {
+                "sidebar-collapsed": "68px",
+                "stack-md": "1rem",
+                "stack-sm": "0.5rem",
+                "gutter": "1rem",
+                "container-padding": "1.5rem",
+                "sidebar-width": "260px"
+            },
+            "fontFamily": {
+                "headline-md": ["Rajdhani"],
+                "headline-lg-mobile": ["Rajdhani"],
+                "body-lg": ["IBM Plex Sans"],
+                "label-caps": ["IBM Plex Sans"],
+                "data-mono": ["IBM Plex Sans"],
+                "headline-lg": ["Rajdhani"],
+                "display-lg": ["Rajdhani"],
+                "body-md": ["IBM Plex Sans"]
+            },
+            "fontSize": {
+                "headline-md": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                "headline-lg-mobile": ["24px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                "label-caps": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.08em", "fontWeight": "600"}],
+                "data-mono": ["14px", {"lineHeight": "1.4", "fontWeight": "500"}],
+                "headline-lg": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                "display-lg": ["48px", {"lineHeight": "1.1", "letterSpacing": "-0.02em", "fontWeight": "700"}],
+                "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #111319;
+            color: #e2e2eb;
+            font-family: 'IBM Plex Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-active {
+            background-color: rgba(249, 115, 22, 0.1);
+            border-left: 2px solid #ffb690;
+            color: #ffb690;
+            font-weight: 700;
+        }
+        .glass-overlay {
+            backdrop-filter: blur(12px);
+            background: rgba(15, 17, 23, 0.6);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen flex">
+<!-- Sidebar Navigation -->
+<!-- Sidebar Navigation -->
+<aside class="fixed h-full w-[260px] left-0 top-0 bg-surface-sidebar border-r border-border-default flex flex-col py-6 z-50">
+<div class="px-6 mb-8">
+<h1 class="font-headline-md text-headline-md font-bold text-primary">Workshop Pro</h1>
+<p class="font-label-caps text-label-caps text-text-secondary mt-1">Gestión Industrial</p>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="panel_control.html">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-caps text-label-caps">Panel de Control</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 bg-primary/10 border-l-2 border-primary text-primary font-bold" href="roles.html">
+<span class="material-symbols-outlined" data-icon="admin_panel_settings">admin_panel_settings</span>
+<span class="font-label-caps text-label-caps">Roles</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="ventas.html">
+<span class="material-symbols-outlined" data-icon="payments">payments</span>
+<span class="font-label-caps text-label-caps">Ventas</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="compras.html">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label-caps text-label-caps">Compras</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="clientes.html">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-label-caps text-label-caps">Clientes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="personal.html">
+<span class="material-symbols-outlined" data-icon="engineering">engineering</span>
+<span class="font-label-caps text-label-caps">Personal</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:bg-surface-container-high transition-colors" href="perfil.html">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-caps text-label-caps">Configuración</span>
+</a>
+</nav>
+<div class="px-4 mt-auto">
+<button class="w-full bg-primary-container text-on-primary-container font-label-caps text-label-caps py-3 rounded-lg flex items-center justify-center gap-2 hover:bg-[#EA6C0A] transition-all">
+<span class="material-symbols-outlined" data-icon="add_circle">add_circle</span>
+                Nueva Venta
+            </button>
+<div class="mt-6 pt-6 border-t border-border-default">
+<a class="flex items-center gap-3 px-4 py-3 text-secondary hover:text-error transition-colors" href="login.html">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-caps text-label-caps">Cerrar Sesión</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 ml-[260px] flex flex-col min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="fixed top-0 right-0 w-[calc(100%-260px)] h-16 bg-surface border-b border-border-default flex justify-between items-center px-8 z-40">
+<div class="flex items-center gap-4 w-1/2">
+</div>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2 relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<button class="text-on-surface-variant hover:text-primary transition-colors p-2">
+<span class="material-symbols-outlined" data-icon="help_outline">help_outline</span>
+</button>
+<div class="h-8 w-px bg-border-default mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right">
+<p class="font-label-caps text-[11px] leading-tight text-text-secondary">ADMINISTRADOR</p>
+<p class="font-body-md text-sm font-semibold">Carlos Méndez</p>
+</div>
+<img alt="Avatar Administrador" class="w-10 h-10 rounded-lg object-cover border border-border-default" data-alt="A professional close-up portrait of a middle-aged male manager with a clean-cut appearance, wearing a modern charcoal work shirt in a high-tech workshop setting. The lighting is sophisticated and directional, highlighting textures. The background is softly blurred with hints of industrial equipment and cool blue tones. The overall aesthetic is clean, professional, and reflects an environment of systematic mechanical expertise." src="../imagenes/imagen_15.png"/>
+</div>
+</div>
+
+</header>
+<!-- View Content -->
+<div class="p-gutter lg:p-container-padding flex-1">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-primary tracking-tight">Roles y Permisos</h2>
+<p class="font-body-md text-text-secondary">Define niveles de acceso y responsabilidades para el equipo del taller.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary-container text-white px-6 py-2.5 rounded-lg hover:bg-[#EA6C0A] transition-all font-bold font-label-caps tracking-widest shadow-lg shadow-primary/10">
+<span class="material-symbols-outlined" data-icon="shield_person">shield_person</span>
+                    NUEVO ROL
+                </button>
+</div>
+<!-- Dashboard Summary Widgets -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-surface-card border border-border-default p-5 rounded-xl">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+<span class="text-status-success font-label-caps">+2 este mes</span>
+</div>
+<h3 class="text-text-secondary font-label-caps">ROLES ACTIVOS</h3>
+<p class="font-headline-md text-headline-md">8</p>
+</div>
+<div class="bg-surface-card border border-border-default p-5 rounded-xl">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-secondary/10 p-2 rounded-lg text-secondary">
+<span class="material-symbols-outlined" data-icon="groups">groups</span>
+</div>
+</div>
+<h3 class="text-text-secondary font-label-caps">USUARIOS ASIGNADOS</h3>
+<p class="font-headline-md text-headline-md">24</p>
+</div>
+<div class="bg-surface-card border border-border-default p-5 rounded-xl">
+<div class="flex justify-between items-start mb-4">
+<div class="bg-status-warning/10 p-2 rounded-lg text-status-warning">
+<span class="material-symbols-outlined" data-icon="lock_open">lock_open</span>
+</div>
+</div>
+<h3 class="text-text-secondary font-label-caps">PERMISOS TOTALES</h3>
+<p class="font-headline-md text-headline-md">112</p>
+</div>
+</div>
+<!-- Roles Table Container -->
+<div class="bg-surface-card border border-border-default rounded-xl overflow-hidden shadow-2xl">
+<!-- Barra de búsqueda de la tabla -->
+<div class="p-4 border-b border-border-default bg-surface-container-low/50 flex items-center justify-between gap-4">
+  <div class="relative w-full max-w-xs">
+    <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-text-secondary text-sm" data-icon="search">search</span>
+    <input class="w-full bg-surface-sidebar border border-border-default rounded-lg pl-10 pr-4 py-2 focus:border-primary-container outline-none text-body-sm placeholder:text-text-secondary/50 transition-all focus:ring-1 focus:ring-primary-container" placeholder="Buscar..." type="text" id="tableSearch"/>
+  </div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-container-high border-b border-border-default">
+<th class="px-6 py-4 font-label-caps text-text-secondary">Rol</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary">Descripción</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary">Usuarios Asignados</th>
+<th class="px-6 py-4 font-label-caps text-text-secondary text-right">Acciones</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-default">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-primary shadow-sm shadow-primary"></div>
+<span class="font-headline-md text-lg text-primary">Super Administrador</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface-variant">Acceso total al sistema, gestión de finanzas y configuración global.</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2 overflow-hidden">
+<img alt="User 1" class="inline-block h-8 w-8 rounded-full ring-2 ring-surface-card" data-alt="A detailed digital avatar of a young professional male in high-key lighting, representing a system administrator. The image features clean, sharp lines and a high-tech modern aesthetic with a focus on professional trust and technical capability. Background is a neutral, slightly textured gray with professional workspace vibes." src="../imagenes/imagen_16.png"/>
+<img alt="User 2" class="inline-block h-8 w-8 rounded-full ring-2 ring-surface-card" data-alt="A portrait of a female executive with a focused expression, styled for a technical environment. The lighting is crisp and cool, emphasizing a professional and authoritative persona. The visual style is modern corporate industrial, utilizing a palette of deep blues and metallics. Cohesive with a high-end workshop software interface." src="../imagenes/imagen_19.png"/>
+<div class="flex items-center justify-center h-8 w-8 rounded-full bg-secondary-container text-white text-[10px] ring-2 ring-surface-card font-bold">+1</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all" title="Visualizar">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all" title="Editar">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded bg-status-error/10 text-status-error hover:bg-status-error/20 transition-all" title="Eliminar">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-success"></div>
+<span class="font-headline-md text-lg text-primary">Jefe de Taller</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface-variant">Gestión de personal técnico, inventario y órdenes de trabajo.</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<img alt="User 3" class="inline-block h-8 w-8 rounded-full ring-2 ring-surface-card" data-alt="A professional portrait of a workshop foreman in a high-tech industrial environment. The subject is wearing a clean technician uniform, lit with warm industrial tones that highlight a reliable and experienced character. The background shows hints of organized spare parts and glowing terminal screens, maintaining a systematic and rugged aesthetic." src="../imagenes/imagen_17.png"/>
+<img alt="User 4" class="inline-block h-8 w-8 rounded-full ring-2 ring-surface-card" data-alt="Detailed professional portrait of a female industrial engineer with a confident expression. The lighting is modern and high-contrast, featuring deep shadows and warm highlights. The setting suggests a sophisticated logistics or mechanical management hub, emphasizing technical proficiency and organizational leadership in a dark-mode UI context." src="../imagenes/imagen_18.png"/>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded bg-status-error/10 text-status-error hover:bg-status-error/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-status-warning"></div>
+<span class="font-headline-md text-lg text-primary">Vendedor</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface-variant">Consulta de stock, creación de presupuestos y facturación.</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<img alt="User 5" class="inline-block h-8 w-8 rounded-full ring-2 ring-surface-card" data-alt="Professional portrait of a sales consultant for industrial equipment. The image has a modern, crisp look with soft Rembrandt lighting. The palette is dominated by dark grays and bright orange accents, aligning with a professional workshop management software. The atmosphere is energetic yet systematic and reliable." src="../imagenes/imagen_14.png"/>
+<div class="flex items-center justify-center h-8 w-8 rounded-full bg-secondary-container text-white text-[10px] ring-2 ring-surface-card font-bold">+6</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded bg-status-error/10 text-status-error hover:bg-status-error/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-container-low transition-colors group">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+<span class="font-headline-md text-lg text-primary">Técnico Mecánico</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-body-md text-on-surface-variant">Registro de tareas realizadas y solicitud de repuestos al almacén.</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex -space-x-2">
+<div class="flex items-center justify-center h-8 w-8 rounded-full bg-secondary-container text-white text-[10px] ring-2 ring-surface-card font-bold">+12</div>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded bg-blue-500/10 text-blue-400 hover:bg-blue-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="visibility">visibility</span>
+</button>
+<button class="p-2 rounded bg-amber-500/10 text-amber-400 hover:bg-amber-500/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="edit">edit</span>
+</button>
+<button class="p-2 rounded bg-status-error/10 text-status-error hover:bg-status-error/20 transition-all">
+<span class="material-symbols-outlined text-sm" data-icon="delete">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-border-default flex items-center justify-between bg-surface-container-low">
+<p class="font-label-caps text-text-secondary">Mostrando 4 de 8 roles</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 border border-border-default rounded text-secondary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm align-middle" data-icon="chevron_left">chevron_left</span>
+</button>
+<button class="px-3 py-1 bg-primary/20 text-primary border border-primary/30 rounded font-bold">1</button>
+<button class="px-3 py-1 border border-border-default rounded text-secondary hover:bg-surface-container-high transition-colors">2</button>
+<button class="px-3 py-1 border border-border-default rounded text-secondary hover:bg-surface-container-high transition-colors">
+<span class="material-symbols-outlined text-sm align-middle" data-icon="chevron_right">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Footer Meta -->
+<div class="mt-8 flex justify-between items-center text-text-secondary font-label-caps text-[10px] tracking-widest">
+<p>© 2024 WORKSHOP PRO - SISTEMA DE GESTIÓN INDUSTRIAL</p>
+<p>ÚLTIMA SINCRONIZACIÓN: HACE 5 MINUTOS</p>
+</div>
+</div>
+</main>
+<!-- Modal Mockup (Hidden by default) -->
+<div class="hidden fixed inset-0 z-[100] flex items-center justify-center glass-overlay p-4" id="role-modal">
+<div class="bg-surface-card border border-border-default w-full max-w-lg rounded-xl shadow-2xl overflow-hidden">
+<div class="px-6 py-4 bg-surface-container-high border-b border-border-default flex justify-between items-center">
+<h3 class="font-headline-md text-headline-md text-primary">Nuevo Rol del Sistema</h3>
+<button class="text-text-secondary hover:text-white transition-colors" onclick="toggleModal()">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="p-6 space-y-6">
+<div>
+<label class="block font-label-caps text-text-secondary mb-2 uppercase tracking-wider">Nombre del Rol</label>
+<input class="bg-surface-container border border-border-default rounded w-full py-2.5 px-4 focus:ring-1 focus:ring-primary-container focus:outline-none" placeholder="Ej. Auditor de Inventario" type="text"/>
+</div>
+<div>
+<label class="block font-label-caps text-text-secondary mb-2 uppercase tracking-wider">Descripción Técnica</label>
+<textarea class="bg-surface-container border border-border-default rounded w-full py-2.5 px-4 focus:ring-1 focus:ring-primary-container focus:outline-none" placeholder="Define las responsabilidades principales..." rows="3"></textarea>
+</div>
+<div>
+<label class="block font-label-caps text-text-secondary mb-4 uppercase tracking-wider">Permisos Base</label>
+<div class="space-y-3">
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded bg-surface-container border-border-default text-primary focus:ring-primary-container" type="checkbox"/>
+<span class="text-body-md text-on-surface group-hover:text-primary transition-colors">Visualizar Inventario</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded bg-surface-container border-border-default text-primary focus:ring-primary-container" type="checkbox"/>
+<span class="text-body-md text-on-surface group-hover:text-primary transition-colors">Generar Órdenes de Compra</span>
+</label>
+<label class="flex items-center gap-3 cursor-pointer group">
+<input class="rounded bg-surface-container border-border-default text-primary focus:ring-primary-container" type="checkbox"/>
+<span class="text-body-md text-on-surface group-hover:text-primary transition-colors">Modificar Precios de Venta</span>
+</label>
+</div>
+</div>
+</div>
+<div class="px-6 py-4 bg-surface-container-low border-t border-border-default flex justify-end gap-3">
+<button class="px-6 py-2 rounded font-label-caps text-secondary hover:bg-surface-container-high transition-colors" onclick="toggleModal()">CANCELAR</button>
+<button class="px-6 py-2 bg-primary-container text-white rounded font-bold font-label-caps tracking-widest hover:bg-[#EA6C0A]">GUARDAR ROL</button>
+</div>
+</div>
+</div>
+<script>
+        function toggleModal() {
+            const modal = document.getElementById('role-modal');
+            modal.classList.toggle('hidden');
+        }
+
+        // Attach to the main CTA for demonstration
+        document.querySelector('button.bg-primary-container.text-white.px-6.py-2.5').addEventListener('click', toggleModal);
+    </script>
+</body></html>
