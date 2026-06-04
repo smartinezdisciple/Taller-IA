@@ -16,6 +16,8 @@ export default function Sidebar() {
     });
   };
 
+  const { usuario } = useAutenticacionStore();
+
   const navItems = [
     { name: 'Panel de Control', path: '/dashboard', icon: 'dashboard' },
     { name: 'Inventario', path: '/inventario', icon: 'inventory_2' },
@@ -24,8 +26,11 @@ export default function Sidebar() {
     { name: 'Compras', path: '/compras', icon: 'shopping_cart' },
     { name: 'Clientes', path: '/clientes', icon: 'group' },
     { name: 'Personal', path: '/personal', icon: 'engineering' },
+    { name: 'Reportes', path: '/reportes', icon: 'analytics', adminOnly: true },
     { name: 'Configuración', path: '/perfil', icon: 'settings' },
   ];
+
+  const filteredNavItems = navItems.filter(item => !item.adminOnly || usuario?.rol === 'administrador');
 
   return (
     <aside className="fixed h-full w-[260px] left-0 top-0 bg-[#161B27] border-r border-[#2D3748] flex flex-col py-6 z-50 transition-all duration-300">
@@ -34,7 +39,7 @@ export default function Sidebar() {
         <p className="font-ibm-plex text-xs uppercase tracking-widest text-[#94A3B8] mt-1">Gestión Industrial</p>
       </div>
       <nav className="flex-1 space-y-1">
-        {navItems.map((item) => (
+        {filteredNavItems.map((item) => (
           <NavLink
             key={item.path}
             to={item.path}

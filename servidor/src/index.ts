@@ -9,6 +9,7 @@ import { sembrarUsuarios } from './config/seed.js';
 
 import repuestosRouter from './routes/repuestos.js';
 import ventasRouter from './routes/ventas.js';
+import comprasRouter from './routes/compras.js';
 
 dotenv.config();
 
@@ -27,6 +28,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/reportes', reportesRouter);
 app.use('/api/repuestos', repuestosRouter);
 app.use('/api', ventasRouter);
+app.use('/api', comprasRouter);
 
 // Alias /api/marcas to the brands endpoint in repuestosRouter
 app.get('/api/marcas', (req, res, next) => {
