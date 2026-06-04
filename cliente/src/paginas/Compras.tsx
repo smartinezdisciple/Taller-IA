@@ -1,128 +1,373 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useAutenticacionStore } from '../store/autenticacionStore';
+import api from '../servicios/api';
 import TablaUniversal from '../componentes/TablaUniversal';
 
-interface RepuestoAlerta {
-  sku: string;
-  nombre: string;
-  categoria: string;
-  stock: number;
-  estado: 'crítico' | 'reponer';
-  imgUrl: string;
+interface Proveedor {
+  id: number;
+  nombre_empresa: string;
+  ruc: string | null;
+  email: string | null;
+  telefono: string | null;
+  creado_en: string;
 }
 
-interface PedidoReciente {
-  id: string;
-  proveedor: string;
-  factura: string;
-  itemsCount: number;
-  total: number;
-  fechaDia: number;
-  fechaMes: string;
-  estado: 'tránsito' | 'recibido';
+interface OrdenCompra {
+  id: number;
+  numero_orden: string;
+  id_proveedor: number;
+  nombre_empresa: string;
+  estado: 'pendiente' | 'aprobado' | 'recibido' | 'cancelado';
+  creador_nombre: string;
+  aprobador_nombre: string | null;
+  fecha_recibida: string | null;
+  creado_en: string;
+  ruc?: string | null;
+  email?: string | null;
+}
+
+interface DetalleOrden {
+  id: number;
+  id_orden: number;
+  id_repuesto: number;
+  nombre_repuesto: string;
+  sku: string;
+  cantidad: number;
+  precio_costo: string | number;
+  subtotal_linea: string | number;
+}
+
+interface Repuesto {
+  id: number;
+  sku: string;
+  nombre_repuesto: string;
+  cantidad_stock: number;
+  stock_minimo: number;
+  precio_costo: string | number;
 }
 
 export default function Compras() {
-  const [modalAbierto, setModalAbierto] = useState(false);
-  const [alertas, setAlertas] = useState<RepuestoAlerta[]>([
-    {
-      sku: 'PK-MZ3-002',
-      nombre: 'Pistón Kit - Mazda 3',
-      categoria: 'Motor',
-      stock: 2,
-      estado: 'crítico',
-      imgUrl: '/imagenes/imagen_10.png'
-    },
-    {
-      sku: 'DF-BRM-88',
-      nombre: 'Discos de Freno - Brembo',
-      categoria: 'Frenos',
-      stock: 8,
-      estado: 'reponer',
-      imgUrl: '/imagenes/imagen_13.png'
-    },
-    {
-      sku: 'RAD-HVT-X',
-      nombre: 'Radiador Reforzado',
-      categoria: 'Enfriamiento',
-      stock: 1,
-      estado: 'crítico',
-      imgUrl: '/imagenes/imagen_11.png'
-    },
-    {
-      sku: 'BJ-NGK-IR',
-      nombre: 'Bujías Iridium NGK',
-      categoria: 'Ignición',
-      stock: 15,
-      estado: 'reponer',
-      imgUrl: '/imagenes/imagen_12.png'
-    }
-  ]);
+  const { usuario } = useAutenticacionStore();
+  const isAdmin = usuario?.rol === 'administrador';
 
-  const [pedidos, setPedidos] = useState<PedidoReciente[]>([
-    {
-      id: '1',
-      proveedor: 'Distribuidora Diesel S.A.',
-      factura: '#ORD-2024-882',
-      itemsCount: 24,
-      total: 3420.00,
-      fechaDia: 24,
-      fechaMes: 'MAY',
-      estado: 'tránsito'
-    },
-    {
-      id: '2',
-      proveedor: 'Importadora Repuestos J&R',
-      factura: '#ORD-2024-875',
-      itemsCount: 112,
-      total: 12150.50,
-      fechaDia: 21,
-      fechaMes: 'MAY',
-      estado: 'recibido'
-    }
-  ]);
+  // Tabs: 'pedidos' | 'proveedores'
+  const [tabActiva, setTabActiva] = useState<'pedidos' | 'proveedores'>('pedidos');
 
-  const [nuevoPedido, setNuevoPedido] = useState({
-    proveedor: '',
-    sku: '',
-    cantidad: 10,
-    precioCosto: 0
+  // Lists
+  const [proveedores, setProveedores] = useState<Proveedor[]>([]);
+  const [ordenes, setOrdenes] = useState<OrdenCompra[]>([]);
+  const [repuestos, setRepuestos] = useState<Repuesto[]>([]);
+  const [alertas, setAlertas] = useState<Repuesto[]>([]);
+
+  // Search & Pagination
+  const [filtroEstado, setFiltroEstado] = useState('');
+  const [paginaOrdenes, setPaginaOrdenes] = useState(1);
+  const [totalOrdenes, setTotalOrdenes] = useState(0);
+  const limiteOrdenes = 10;
+
+  const [loading, setLoading] = useState(false);
+
+  // Modals state
+  const [modalPedidoOpen, setModalPedidoOpen] = useState(false);
+  const [modalProveedorOpen, setModalProveedorOpen] = useState(false);
+  const [modalDetalleOpen, setModalDetalleOpen] = useState(false);
+
+  // Form states - Nuevo Pedido
+  const [selectedProveedorId, setSelectedProveedorId] = useState('');
+  const [pedidoItems, setPedidoItems] = useState<{ id_repuesto: number; cantidad: number; precio_costo: number }[]>([]);
+  // Temp item form
+  const [tempRepuestoId, setTempRepuestoId] = useState('');
+  const [tempCantidad, setTempCantidad] = useState('10');
+  const [tempCosto, setTempCosto] = useState('0.00');
+
+  // Form states - Proveedor CRUD
+  const [formProveedor, setFormProveedor] = useState({
+    id: null as number | null,
+    nombre_empresa: '',
+    ruc: '',
+    email: '',
+    telefono: ''
   });
 
-  const handleCrearPedido = (e: React.FormEvent) => {
-    e.preventDefault();
-    const pedido: PedidoReciente = {
-      id: Date.now().toString(),
-      proveedor: nuevoPedido.proveedor || 'Proveedor Genérico',
-      factura: `#ORD-2024-${Math.floor(Math.random() * 900) + 100}`,
-      itemsCount: nuevoPedido.cantidad,
-      total: nuevoPedido.cantidad * nuevoPedido.precioCosto,
-      fechaDia: new Date().getDate(),
-      fechaMes: new Date().toLocaleString('es-ES', { month: 'short' }).toUpperCase(),
-      estado: 'tránsito'
-    };
-    setPedidos([pedido, ...pedidos]);
-    setModalAbierto(false);
-    setNuevoPedido({ proveedor: '', sku: '', cantidad: 10, precioCosto: 0 });
+  // Selected Order for Details
+  const [selectedOrder, setSelectedOrder] = useState<OrdenCompra | null>(null);
+  const [selectedOrderDetails, setSelectedOrderDetails] = useState<DetalleOrden[]>([]);
+
+  // Error messages
+  const [formError, setFormError] = useState('');
+
+  // Fetch Providers
+  const fetchProveedores = async () => {
+    try {
+      const res = await api.get('/api/proveedores');
+      if (res.ok) {
+        const data = await res.json();
+        setProveedores(data);
+      }
+    } catch (err) {
+      console.error('Error fetching proveedores:', err);
+    }
   };
 
-  const headers = ['Repuesto', 'Categoría', 'Stock Act.', 'Estado', 'Acción'];
+  // Fetch Parts Catalog
+  const fetchRepuestos = async () => {
+    try {
+      const res = await api.get('/api/repuestos?limite=100');
+      if (res.ok) {
+        const data = await res.json();
+        setRepuestos(data.repuestos);
+        // Filter alerts (stock <= stock_minimo)
+        const lowStock = data.repuestos.filter((r: Repuesto) => r.cantidad_stock <= r.stock_minimo);
+        setAlertas(lowStock);
+      }
+    } catch (err) {
+      console.error('Error fetching repuestos:', err);
+    }
+  };
+
+  // Fetch Purchase Orders
+  const fetchOrdenes = async () => {
+    setLoading(true);
+    try {
+      const estadoParam = filtroEstado ? `&estado=${filtroEstado}` : '';
+      const res = await api.get(`/api/ordenes?pagina=${paginaOrdenes}&limite=${limiteOrdenes}${estadoParam}`);
+      if (res.ok) {
+        const data = await res.json();
+        setOrdenes(data.ordenes);
+        setTotalOrdenes(data.total);
+      }
+    } catch (err) {
+      console.error('Error fetching ordenes:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch single order details
+  const fetchOrderDetails = async (id: number) => {
+    try {
+      const res = await api.get(`/api/ordenes/${id}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSelectedOrder(data);
+        setSelectedOrderDetails(data.items || []);
+      }
+    } catch (err) {
+      console.error('Error fetching order details:', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchProveedores();
+    fetchRepuestos();
+  }, []);
+
+  useEffect(() => {
+    fetchOrdenes();
+  }, [paginaOrdenes, filtroEstado]);
+
+  // Handle create order submit
+  const handleCrearOrden = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!selectedProveedorId) {
+      setFormError('Debe seleccionar un proveedor.');
+      return;
+    }
+
+    if (pedidoItems.length === 0) {
+      setFormError('Debe agregar al menos un repuesto a la orden.');
+      return;
+    }
+
+    const payload = {
+      id_proveedor: parseInt(selectedProveedorId),
+      items: pedidoItems
+    };
+
+    try {
+      const res = await api.post('/api/ordenes', payload);
+      if (res.ok) {
+        setModalPedidoOpen(false);
+        // Reset form
+        setSelectedProveedorId('');
+        setPedidoItems([]);
+        fetchOrdenes();
+        fetchRepuestos(); // refresh stocks if any change, though order is pending
+      } else {
+        const data = await res.json();
+        setFormError(data.mensaje || 'Error al crear la orden de compra.');
+      }
+    } catch (err) {
+      setFormError('Error de conexión al servidor.');
+    }
+  };
+
+  // Handle add item to order cart
+  const handleAddItemToCart = () => {
+    if (!tempRepuestoId) return;
+    const rId = parseInt(tempRepuestoId);
+    const cant = parseInt(tempCantidad);
+    const cost = parseFloat(tempCosto);
+
+    if (isNaN(cant) || cant <= 0) {
+      alert('La cantidad debe ser mayor a 0');
+      return;
+    }
+    if (isNaN(cost) || cost < 0) {
+      alert('El precio de costo debe ser mayor o igual a 0');
+      return;
+    }
+
+    // Check if duplicate
+    const existsIdx = pedidoItems.findIndex(item => item.id_repuesto === rId);
+    if (existsIdx > -1) {
+      const updated = [...pedidoItems];
+      updated[existsIdx].cantidad += cant;
+      setPedidoItems(updated);
+    } else {
+      setPedidoItems([...pedidoItems, { id_repuesto: rId, cantidad: cant, precio_costo: cost }]);
+    }
+
+    // Reset temp inputs
+    setTempRepuestoId('');
+    setTempCantidad('10');
+    setTempCosto('0.00');
+  };
+
+  // Remove item from order cart
+  const handleRemoveItemFromCart = (index: number) => {
+    setPedidoItems(pedidoItems.filter((_, idx) => idx !== index));
+  };
+
+  // Transition Order State
+  const handleTransitionState = async (newEstado: 'aprobado' | 'recibido' | 'cancelado') => {
+    if (!selectedOrder) return;
+
+    if (!window.confirm(`¿Está seguro de cambiar el estado de la orden a "${newEstado.toUpperCase()}"?`)) {
+      return;
+    }
+
+    try {
+      const res = await api.put(`/api/ordenes/${selectedOrder.id}/estado`, { estado: newEstado });
+      if (res.ok) {
+        const updated = await res.json();
+        setSelectedOrder({ ...selectedOrder, estado: updated.estado });
+        fetchOrdenes();
+        fetchRepuestos(); // Reload catalog to reflect updated stocks/costs if received
+        setModalDetalleOpen(false);
+        alert(`La orden se actualizó exitosamente a: ${newEstado}`);
+      } else {
+        const err = await res.json();
+        alert(err.mensaje || 'Error al cambiar el estado de la orden.');
+      }
+    } catch (err) {
+      alert('Error de conexión con el servidor.');
+    }
+  };
+
+  // Submit Supplier Form (Create or Edit)
+  const handleSubmitProveedor = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError('');
+
+    if (!formProveedor.nombre_empresa) {
+      setFormError('El nombre de la empresa es requerido.');
+      return;
+    }
+
+    const payload = {
+      nombre_empresa: formProveedor.nombre_empresa,
+      ruc: formProveedor.ruc || null,
+      email: formProveedor.email || null,
+      telefono: formProveedor.telefono || null
+    };
+
+    try {
+      let res;
+      if (formProveedor.id) {
+        res = await api.put(`/api/proveedores/${formProveedor.id}`, payload);
+      } else {
+        res = await api.post('/api/proveedores', payload);
+      }
+
+      if (res.ok) {
+        setModalProveedorOpen(false);
+        fetchProveedores();
+      } else {
+        const data = await res.json();
+        setFormError(data.mensaje || 'Error al guardar proveedor.');
+      }
+    } catch (err) {
+      setFormError('Error de conexión con el servidor.');
+    }
+  };
+
+  // Open Edit Supplier
+  const handleOpenEditProveedor = (p: Proveedor) => {
+    setFormError('');
+    setFormProveedor({
+      id: p.id,
+      nombre_empresa: p.nombre_empresa,
+      ruc: p.ruc || '',
+      email: p.email || '',
+      telefono: p.telefono || ''
+    });
+    setModalProveedorOpen(true);
+  };
+
+  // Open Create Supplier
+  const handleOpenCreateProveedor = () => {
+    setFormError('');
+    setFormProveedor({
+      id: null,
+      nombre_empresa: '',
+      ruc: '',
+      email: '',
+      telefono: ''
+    });
+    setModalProveedorOpen(true);
+  };
+
+  // Calculate order total cart
+  const calculateCartTotal = () => {
+    return pedidoItems.reduce((acc, item) => {
+      return acc + (item.cantidad * item.precio_costo);
+    }, 0);
+  };
+
+  // KPIs
+  const totalStock = repuestos.reduce((acc, r) => acc + r.cantidad_stock, 0);
+  const criticosCount = alertas.length;
+  const reponerCount = repuestos.filter(r => r.cantidad_stock > r.stock_minimo && r.cantidad_stock <= r.stock_minimo + 5).length;
+  const pedidosActivosCount = ordenes.filter(o => o.estado === 'pendiente' || o.estado === 'aprobado').length;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-500">
       {/* Header Section */}
       <div className="flex justify-between items-end">
         <div>
-          <h2 className="font-rajdhani text-3xl font-bold text-acento uppercase tracking-tight">Compras e Inventario</h2>
-          <p className="text-texto-secundario text-sm">Supervisión de stock y gestión de pedidos a proveedores.</p>
+          <h2 className="font-rajdhani text-3xl font-bold text-[#F97316] uppercase tracking-tight">Compras e Inventario</h2>
+          <p className="text-[#94A3B8] text-sm">Supervisión de stock y gestión de pedidos a proveedores.</p>
         </div>
         <div className="flex gap-3">
-          <button className="px-4 py-2 border border-[#2D3748] bg-[#1E2433] text-[#F1F5F9] text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:bg-[#161B27] transition-all rounded-lg">
-            <span className="material-symbols-outlined text-sm">filter_list</span>
-            Filtrar
-          </button>
+          {tabActiva === 'proveedores' && isAdmin && (
+            <button
+              onClick={handleOpenCreateProveedor}
+              className="px-4 py-2 bg-[#F97316] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:bg-[#EA6C0A] transition-all rounded-lg shadow-md shadow-[#F97316]/20 font-ibm-plex"
+            >
+              <span className="material-symbols-outlined text-sm">person_add</span>
+              Nuevo Proveedor
+            </button>
+          )}
           <button
-            onClick={() => setModalAbierto(true)}
-            className="px-4 py-2 bg-acento text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:bg-[#EA6C0A] transition-all rounded-lg shadow-md shadow-acento/20"
+            onClick={() => {
+              setSelectedProveedorId('');
+              setPedidoItems([]);
+              setModalPedidoOpen(true);
+            }}
+            className="px-4 py-2 bg-[#F97316] text-white text-xs font-semibold uppercase tracking-wider flex items-center gap-2 hover:bg-[#EA6C0A] transition-all rounded-lg shadow-md shadow-[#F97316]/20 font-ibm-plex"
           >
             <span className="material-symbols-outlined text-sm">add_shopping_cart</span>
             Nuevo Pedido
@@ -132,333 +377,695 @@ export default function Compras() {
 
       {/* KPI Bento Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <div className="bg-[#1E2433] border border-[#2D3748] p-6 rounded-xl flex flex-col justify-between hover:border-acento/50 transition-colors">
+        <div className="bg-[#1E2433] border border-[#2D3748] p-6 rounded-xl flex flex-col justify-between hover:border-[#F97316]/50 transition-colors">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-acento p-2 bg-acento/10 rounded-lg">inventory_2</span>
-            <span className="text-exito font-ibm-plex text-[10px] bg-exito/10 px-2 py-0.5 rounded font-bold">+12%</span>
+            <span className="material-symbols-outlined text-[#F97316] p-2 bg-[#F97316]/10 rounded-lg">inventory_2</span>
           </div>
-          <div className="mt-4">
-            <p className="text-texto-secundario text-[10px] uppercase font-bold tracking-wider font-ibm-plex">Stock Total</p>
+          <div className="mt-4 font-ibm-plex">
+            <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider">Stock Total</p>
             <h3 className="font-rajdhani text-2xl font-bold text-[#F1F5F9] mt-1">
-              14,280 <span className="text-xs font-normal text-texto-secundario">unid.</span>
+              {totalStock.toLocaleString()} <span className="text-xs font-normal text-[#94A3B8]">unid.</span>
             </h3>
           </div>
         </div>
 
-        <div className="bg-[#1E2433] border border-red-500/30 p-6 rounded-xl flex flex-col justify-between hover:border-error transition-colors">
+        <div className="bg-[#1E2433] border border-red-500/30 p-6 rounded-xl flex flex-col justify-between hover:border-red-500 transition-colors">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-error p-2 bg-error/10 rounded-lg">warning</span>
-            <span className="text-error font-ibm-plex text-[10px] bg-error/10 px-2 py-0.5 rounded font-bold">Crítico</span>
+            <span className="material-symbols-outlined text-red-500 p-2 bg-red-500/10 rounded-lg">warning</span>
+            <span className="text-red-500 font-ibm-plex text-[10px] bg-red-500/10 px-2 py-0.5 rounded font-bold">Crítico</span>
           </div>
-          <div className="mt-4">
-            <p className="text-texto-secundario text-[10px] uppercase font-bold tracking-wider font-ibm-plex">Stock Crítico</p>
-            <h3 className="font-rajdhani text-2xl font-bold text-error mt-1">
-              12 <span className="text-xs font-normal text-texto-secundario">items</span>
+          <div className="mt-4 font-ibm-plex">
+            <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider">Stock Crítico</p>
+            <h3 className="font-rajdhani text-2xl font-bold text-red-500 mt-1">
+              {criticosCount} <span className="text-xs font-normal text-[#94A3B8]">items</span>
             </h3>
           </div>
         </div>
 
-        <div className="bg-[#1E2433] border border-yellow-500/30 p-6 rounded-xl flex flex-col justify-between hover:border-advertencia transition-colors">
+        <div className="bg-[#1E2433] border border-yellow-500/30 p-6 rounded-xl flex flex-col justify-between hover:border-yellow-500 transition-colors">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-advertencia p-2 bg-advertencia/10 rounded-lg">priority_high</span>
-            <span className="text-advertencia font-ibm-plex text-[10px] bg-advertencia/10 px-2 py-0.5 rounded font-bold">Aviso</span>
+            <span className="material-symbols-outlined text-yellow-500 p-2 bg-yellow-500/10 rounded-lg">priority_high</span>
+            <span className="text-yellow-500 font-ibm-plex text-[10px] bg-yellow-500/10 px-2 py-0.5 rounded font-bold">Aviso</span>
           </div>
-          <div className="mt-4">
-            <p className="text-texto-secundario text-[10px] uppercase font-bold tracking-wider font-ibm-plex">Reponer Pronto</p>
-            <h3 className="font-rajdhani text-2xl font-bold text-advertencia mt-1">
-              34 <span className="text-xs font-normal text-texto-secundario">items</span>
+          <div className="mt-4 font-ibm-plex">
+            <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider">Reponer Pronto</p>
+            <h3 className="font-rajdhani text-2xl font-bold text-yellow-500 mt-1">
+              {reponerCount} <span className="text-xs font-normal text-[#94A3B8]">items</span>
             </h3>
           </div>
         </div>
 
-        <div className="bg-[#1E2433] border border-[#2D3748] p-6 rounded-xl flex flex-col justify-between hover:border-acento/50 transition-colors">
+        <div className="bg-[#1E2433] border border-[#2D3748] p-6 rounded-xl flex flex-col justify-between hover:border-[#F97316]/50 transition-colors">
           <div className="flex justify-between items-start">
-            <span className="material-symbols-outlined text-info p-2 bg-info/10 rounded-lg">local_shipping</span>
-            <span className="text-info font-ibm-plex text-[10px] bg-info/10 px-2 py-0.5 rounded font-bold">En curso</span>
+            <span className="material-symbols-outlined text-blue-400 p-2 bg-blue-400/10 rounded-lg">local_shipping</span>
+            <span className="text-blue-400 font-ibm-plex text-[10px] bg-blue-400/10 px-2 py-0.5 rounded font-bold">En curso</span>
           </div>
-          <div className="mt-4">
-            <p className="text-texto-secundario text-[10px] uppercase font-bold tracking-wider font-ibm-plex">Pedidos Activos</p>
+          <div className="mt-4 font-ibm-plex">
+            <p className="text-[#94A3B8] text-[10px] uppercase font-bold tracking-wider">Pedidos Activos</p>
             <h3 className="font-rajdhani text-2xl font-bold text-[#F1F5F9] mt-1">
-              8 <span className="text-xs font-normal text-texto-secundario">facturas</span>
+              {pedidosActivosCount} <span className="text-xs font-normal text-[#94A3B8]">facturas</span>
             </h3>
           </div>
         </div>
       </div>
 
-      {/* Main Inventory Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Table Section: Inventory Alerts & Orders (col-span-2) */}
-        <div className="lg:col-span-2 space-y-6">
-          <TablaUniversal<RepuestoAlerta>
-            titulo="Repuestos en Alerta"
-            subtitulo="Inventario con existencias bajo el límite mínimo de seguridad."
-            headers={headers}
-            datos={alertas}
-            buscarPor={(a) => `${a.nombre} ${a.sku} ${a.categoria}`}
-            buscarPlaceholder="Buscar repuesto por nombre o SKU..."
-            itemsPorPagina={4}
-            renderRow={(item, index, bgClass) => (
-              <tr key={item.sku} className={`${bgClass} hover:bg-[#F1F5F9] transition-colors group`}>
-                {/* Repuesto */}
-                <td className="px-6 py-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded bg-[#161B27] border border-[#2D3748] flex items-center justify-center overflow-hidden">
-                      <img
-                        alt={item.nombre}
-                        className="w-full h-full object-cover opacity-80"
-                        src={item.imgUrl}
-                      />
-                    </div>
-                    <div>
-                      <p className="font-bold text-texto-datos text-sm">{item.nombre}</p>
-                      <p className="text-[10px] text-[#64748B] font-mono uppercase">SKU: {item.sku}</p>
-                    </div>
-                  </div>
-                </td>
+      {/* Tabs Switcher */}
+      <div className="flex border-b border-[#2D3748] font-ibm-plex">
+        <button
+          onClick={() => setTabActiva('pedidos')}
+          className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 uppercase transition-all ${
+            tabActiva === 'pedidos'
+              ? 'border-[#F97316] text-[#F97316]'
+              : 'border-transparent text-[#94A3B8] hover:text-[#F1F5F9]'
+          }`}
+        >
+          Alertas e Historial de Pedidos
+        </button>
+        {isAdmin && (
+          <button
+            onClick={() => setTabActiva('proveedores')}
+            className={`py-3 px-6 text-sm font-semibold tracking-wide border-b-2 uppercase transition-all ${
+              tabActiva === 'proveedores'
+                ? 'border-[#F97316] text-[#F97316]'
+                : 'border-transparent text-[#94A3B8] hover:text-[#F1F5F9]'
+            }`}
+          >
+            Gestión de Proveedores
+          </button>
+        )}
+      </div>
 
-                {/* Categoría */}
-                <td className="px-6 py-4 text-xs font-semibold text-[#64748B]">
-                  {item.categoria}
-                </td>
+      {/* Main Content Layout */}
+      {tabActiva === 'pedidos' ? (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Table Section: Inventory Alerts & Orders (col-span-2) */}
+          <div className="lg:col-span-2 space-y-8">
+            {/* Repuestos en alerta */}
+            <TablaUniversal<Repuesto>
+              titulo="Repuestos en Alerta"
+              subtitulo="Inventario con existencias bajo el límite mínimo de seguridad."
+              headers={['Repuesto', 'Código SKU', 'Stock Actual', 'Stock Mínimo', 'Acciones']}
+              datos={alertas}
+              buscarPor={(a) => `${a.nombre_repuesto} ${a.sku}`}
+              buscarPlaceholder="Buscar repuesto por nombre o SKU..."
+              itemsPorPagina={4}
+              renderRow={(item, index, bgClass) => (
+                <tr key={item.id} className={`${bgClass} hover:bg-slate-100 transition-colors group font-ibm-plex text-[#1E293B]`}>
+                  <td className="px-6 py-4 font-bold text-sm">
+                    {item.nombre_repuesto}
+                  </td>
+                  <td className="px-6 py-4 font-mono text-xs text-[#64748B]">
+                    {item.sku}
+                  </td>
+                  <td className="px-6 py-4">
+                    <span className="px-2 py-0.5 bg-red-100 text-red-700 border border-red-200 rounded text-xs font-bold">
+                      {item.cantidad_stock} und.
+                    </span>
+                  </td>
+                  <td className="px-6 py-4 text-xs font-semibold text-[#64748B]">
+                    {item.stock_minimo} und.
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => {
+                        setSelectedProveedorId('');
+                        setPedidoItems([{ id_repuesto: item.id, cantidad: item.stock_minimo * 2, precio_costo: parseFloat(item.precio_costo as string || '0.00') }]);
+                        setModalPedidoOpen(true);
+                      }}
+                      title="Solicitar Reposición"
+                      className="p-1.5 rounded text-[#F97316] hover:bg-orange-100 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg">shopping_cart_checkout</span>
+                    </button>
+                  </td>
+                </tr>
+              )}
+            />
 
-                {/* Stock Act. */}
-                <td className="px-6 py-4 font-mono text-sm font-bold text-texto-datos">
-                  {item.stock.toString().padStart(2, '0')}
-                </td>
-
-                {/* Estado */}
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                    item.estado === 'crítico'
-                      ? 'bg-red-100 text-red-700'
-                      : 'bg-yellow-100 text-yellow-700'
-                  }`}>
-                    {item.estado === 'crítico' ? 'Bajo Crítico' : 'Reponer'}
-                  </span>
-                </td>
-
-                {/* Acción */}
-                <td className="px-6 py-4">
-                  <button 
-                    onClick={() => {
-                      setNuevoPedido({
-                        proveedor: '',
-                        sku: item.sku,
-                        cantidad: 20,
-                        precioCosto: 15
-                      });
-                      setModalAbierto(true);
+            {/* Pedidos / Ordenes de Compra Recientes */}
+            <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl overflow-hidden shadow-lg font-ibm-plex">
+              <div className="p-6 border-b border-[#2D3748] flex justify-between items-center bg-[#161B27]/40">
+                <div>
+                  <h4 className="text-lg font-bold text-white">Órdenes de Compra</h4>
+                  <p className="text-xs text-[#94A3B8]">Listado histórico de adquisiciones a proveedores.</p>
+                </div>
+                <div className="flex gap-2">
+                  <select
+                    value={filtroEstado}
+                    onChange={(e) => {
+                      setFiltroEstado(e.target.value);
+                      setPaginaOrdenes(1);
                     }}
-                    className="p-1.5 rounded text-acento hover:bg-acento/10 transition-colors"
+                    className="bg-[#161B27] border border-[#2D3748] text-xs text-white rounded-lg py-1.5 px-3 outline-none focus:border-[#F97316]"
                   >
-                    <span className="material-symbols-outlined">shopping_cart_checkout</span>
+                    <option value="">Todos los estados</option>
+                    <option value="pendiente">Pendientes</option>
+                    <option value="aprobado">Aprobadas</option>
+                    <option value="recibido">Recibidas</option>
+                    <option value="cancelado">Canceladas</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="divide-y divide-[#2D3748]">
+                {loading ? (
+                  <div className="p-6 text-center text-[#94A3B8] italic animate-pulse">Cargando órdenes de compra...</div>
+                ) : ordenes.length > 0 ? (
+                  ordenes.map((pedido) => {
+                    const badgeStyles = {
+                      pendiente: 'bg-amber-100 text-amber-700 border-amber-200',
+                      aprobado: 'bg-blue-100 text-blue-700 border-blue-200',
+                      recibido: 'bg-green-100 text-green-700 border-green-200',
+                      cancelado: 'bg-red-100 text-red-700 border-red-200'
+                    };
+
+                    return (
+                      <div
+                        key={pedido.id}
+                        onClick={() => {
+                          setSelectedOrder(pedido);
+                          fetchOrderDetails(pedido.id);
+                          setModalDetalleOpen(true);
+                        }}
+                        className="p-6 flex items-center justify-between hover:bg-[#161B27]/40 transition-colors group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-6">
+                          <div className="text-center bg-[#161B27] border border-[#2D3748] p-2 rounded w-16">
+                            <p className="text-[9px] font-bold text-[#94A3B8] uppercase">
+                              {new Date(pedido.creado_en).toLocaleString('es-ES', { month: 'short' })}
+                            </p>
+                            <p className="font-rajdhani text-2xl font-bold text-[#F97316] leading-none mt-1">
+                              {new Date(pedido.creado_en).getDate()}
+                            </p>
+                          </div>
+                          <div>
+                            <h5 className="font-bold text-white text-sm">{pedido.nombre_empresa}</h5>
+                            <p className="text-xs text-[#94A3B8] mt-1 font-mono">
+                              Orden: {pedido.numero_orden} | Creado por: {pedido.creador_nombre}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-6">
+                          <div className="text-right">
+                            <span className={`px-2.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${badgeStyles[pedido.estado]}`}>
+                              {pedido.estado}
+                            </span>
+                            {pedido.fecha_recibida && (
+                              <p className="text-[10px] text-[#94A3B8] mt-1">
+                                Recibido: {new Date(pedido.fecha_recibida).toLocaleDateString()}
+                              </p>
+                            )}
+                          </div>
+                          <span className="material-symbols-outlined text-[#94A3B8] group-hover:text-[#F97316] transition-all">
+                            chevron_right
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="p-6 text-center text-[#94A3B8] italic">No se registraron órdenes de compra en el sistema.</div>
+                )}
+              </div>
+
+              {/* Pagination */}
+              {totalOrdenes > limiteOrdenes && (
+                <div className="p-4 bg-[#161B27]/40 border-t border-[#2D3748] flex justify-end gap-2">
+                  <button
+                    disabled={paginaOrdenes === 1}
+                    onClick={() => setPaginaOrdenes(p => Math.max(1, p - 1))}
+                    className="p-1 px-2.5 rounded bg-[#2D3748] text-[#94A3B8] hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent text-xs"
+                  >
+                    Anterior
                   </button>
+                  <button
+                    disabled={paginaOrdenes * limiteOrdenes >= totalOrdenes}
+                    onClick={() => setPaginaOrdenes(p => p + 1)}
+                    className="p-1 px-2.5 rounded bg-[#2D3748] text-[#94A3B8] hover:bg-white/5 disabled:opacity-30 disabled:hover:bg-transparent text-xs"
+                  >
+                    Siguiente
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Sidebar Notifications & Static Alerts (Right Column) */}
+          <div className="space-y-6 font-ibm-plex">
+            <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl p-6 relative overflow-hidden group shadow-lg">
+              <h4 className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8] mb-4">
+                Alertas de Compra
+              </h4>
+              <div className="space-y-4">
+                <div className="flex gap-4 p-4 rounded-xl bg-red-500/5 border border-red-500/20">
+                  <span className="material-symbols-outlined text-red-500">inventory_2</span>
+                  <div>
+                    <p className="text-xs font-bold text-white leading-tight">Stock Mínimo Excedido</p>
+                    <p className="text-[11px] text-[#94A3B8] mt-1">Hay {criticosCount} repuestos que requieren aprovisionamiento inmediato.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 p-4 rounded-xl bg-yellow-500/5 border border-yellow-500/20">
+                  <span className="material-symbols-outlined text-yellow-500">notifications</span>
+                  <div>
+                    <p className="text-xs font-bold text-white leading-tight">Proceso Administrativo</p>
+                    <p className="text-[11px] text-[#94A3B8] mt-1">Los operarios "comprador" pueden crear pedidos, pero solo el "administrador" los puede autorizar y recepcionar.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : (
+        /* TAB PROVEEDORES CRUD */
+        <div className="animate-in fade-in duration-300">
+          <TablaUniversal<Proveedor>
+            titulo="Catálogo de Proveedores"
+            subtitulo="Gestión de contactos corporativos de abastecimiento."
+            headers={['Empresa', 'RUC / Registro', 'E-mail', 'Teléfono', 'Acciones']}
+            datos={proveedores}
+            buscarPor={(p) => `${p.nombre_empresa} ${p.ruc}`}
+            buscarPlaceholder="Buscar proveedor por empresa o RUC..."
+            itemsPorPagina={10}
+            renderRow={(p, index, bgClass) => (
+              <tr key={p.id} className={`${bgClass} hover:bg-slate-100 transition-colors group font-ibm-plex text-[#1E293B]`}>
+                <td className="px-6 py-4 font-bold text-sm">
+                  {p.nombre_empresa}
+                </td>
+                <td className="px-6 py-4 font-mono text-xs text-[#64748B]">
+                  {p.ruc || 'S/N'}
+                </td>
+                <td className="px-6 py-4 text-xs font-medium text-[#1E293B]">
+                  {p.email || <span className="text-[#94A3B8] italic">Ninguno</span>}
+                </td>
+                <td className="px-6 py-4 text-xs text-[#64748B]">
+                  {p.telefono || 'S/N'}
+                </td>
+                <td className="px-6 py-4">
+                  <div className="flex gap-1">
+                    <button
+                      onClick={() => handleOpenEditProveedor(p)}
+                      title="Editar Proveedor"
+                      className="p-1.5 rounded text-[#F97316] hover:bg-orange-100 transition-colors"
+                    >
+                      <span className="material-symbols-outlined text-lg">edit</span>
+                    </button>
+                  </div>
                 </td>
               </tr>
             )}
           />
-
-          {/* Recent Orders to Suppliers */}
-          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl overflow-hidden shadow-lg">
-            <div className="p-6 border-b border-[#2D3748] flex justify-between items-center bg-[#161B27]/40">
-              <h4 className="font-rajdhani text-lg font-bold text-texto-principal">Pedidos Recientes</h4>
-              <div className="flex gap-2">
-                <span className="text-[9px] px-2 py-0.5 bg-acento/10 text-acento border border-acento/20 rounded font-bold uppercase tracking-wider">
-                  En tránsito
-                </span>
-                <span className="text-[9px] px-2 py-0.5 bg-[#2D3748] text-texto-secundario border border-transparent rounded font-bold uppercase tracking-wider">
-                  Recibidos
-                </span>
-              </div>
-            </div>
-            <div className="divide-y divide-[#2D3748]">
-              {pedidos.map((pedido) => (
-                <div key={pedido.id} className="p-6 flex items-center justify-between hover:bg-[#161B27]/40 transition-colors group">
-                  <div className="flex items-center gap-6">
-                    <div className="text-center bg-[#161B27] border border-[#2D3748] p-2 rounded w-16">
-                      <p className="text-[9px] font-ibm-plex font-bold text-texto-secundario">{pedido.fechaMes}</p>
-                      <p className="font-rajdhani text-2xl font-bold text-acento leading-none mt-1">{pedido.fechaDia}</p>
-                    </div>
-                    <div>
-                      <h5 className="font-bold text-texto-principal text-sm">{pedido.proveedor}</h5>
-                      <p className="text-xs text-texto-secundario">Factura {pedido.factura} | {pedido.itemsCount} Items</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-8">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-texto-principal">${pedido.total.toFixed(2)}</p>
-                      <p className={`text-[10px] font-bold flex items-center justify-end gap-1 mt-1 ${
-                        pedido.estado === 'tránsito' ? 'text-exito' : 'text-texto-secundario'
-                      }`}>
-                        <span className="material-symbols-outlined text-xs">
-                          {pedido.estado === 'tránsito' ? 'local_shipping' : 'check_circle'}
-                        </span>
-                        {pedido.estado === 'tránsito' ? 'EN TRÁNSITO' : 'RECIBIDO'}
-                      </p>
-                    </div>
-                    <button className="material-symbols-outlined text-texto-secundario group-hover:text-acento transition-colors">
-                      chevron_right
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
+      )}
 
-        {/* Sidebar Content: Notifications & Health Charts (Right Column) */}
-        <div className="space-y-6">
-          {/* Health Chart Widget */}
-          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl p-6 relative overflow-hidden group shadow-lg">
-            <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-              <span className="material-symbols-outlined text-[100px]">query_stats</span>
-            </div>
-            <h4 className="font-ibm-plex text-[10px] uppercase font-bold tracking-wider text-texto-secundario mb-4">
-              Salud del Inventario
-            </h4>
-            <div className="relative h-48 w-full flex items-end justify-between gap-3 px-2 mt-4">
-              <div className="bg-acento/40 w-full rounded-t-sm relative group/bar" style={{ height: '60%' }}>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">60%</div>
-              </div>
-              <div className="bg-acento/60 w-full rounded-t-sm relative group/bar" style={{ height: '45%' }}>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">45%</div>
-              </div>
-              <div className="bg-acento w-full rounded-t-sm relative group/bar" style={{ height: '85%' }}>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">85%</div>
-              </div>
-              <div className="bg-acento/20 w-full rounded-t-sm relative group/bar" style={{ height: '30%' }}>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">30%</div>
-              </div>
-              <div className="bg-acento/80 w-full rounded-t-sm relative group/bar" style={{ height: '70%' }}>
-                <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-[9px] font-bold opacity-0 group-hover/bar:opacity-100 transition-opacity">70%</div>
-              </div>
-            </div>
-            <div className="mt-6 space-y-3">
-              <div className="flex justify-between text-xs font-semibold">
-                <span className="text-texto-secundario">Disponibilidad</span>
-                <span className="text-texto-principal">94.2%</span>
-              </div>
-              <div className="w-full bg-[#161B27] h-1.5 rounded-full overflow-hidden border border-[#2D3748]">
-                <div className="bg-acento h-full w-[94%]"></div>
-              </div>
-              <p className="text-[10px] text-texto-secundario italic">Actualizado hace 15 minutos</p>
-            </div>
-          </div>
-
-          {/* Quick Alerts */}
-          <div className="space-y-4">
-            <h4 className="font-ibm-plex text-[10px] uppercase font-bold tracking-wider text-texto-secundario px-2">
-              Notificaciones de Stock
-            </h4>
-            <div className="flex gap-4 p-4 rounded-xl bg-error/5 border border-error/20">
-              <span className="material-symbols-outlined text-error">inventory_2</span>
-              <div>
-                <p className="text-xs font-bold text-texto-principal leading-tight">Agotamiento Crítico</p>
-                <p className="text-[11px] text-texto-secundario mt-1">Aceite 10W40 Sintético se ha agotado en la sucursal Norte.</p>
-                <button
-                  onClick={() => {
-                    setNuevoPedido({ ...nuevoPedido, proveedor: 'Norte Lubricantes', sku: 'AC-10W40-S', cantidad: 50, precioCosto: 8.5 });
-                    setModalAbierto(true);
-                  }}
-                  className="text-error text-[10px] font-bold uppercase mt-2 hover:underline tracking-wider"
-                >
-                  Solicitar Compra
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-4 p-4 rounded-xl bg-advertencia/5 border border-advertencia/20">
-              <span className="material-symbols-outlined text-advertencia">schedule</span>
-              <div>
-                <p className="text-xs font-bold text-texto-principal leading-tight">Retraso en Pedido</p>
-                <p className="text-[11px] text-texto-secundario mt-1">El pedido #ORD-2024-882 presenta un retraso de 48h por logística.</p>
-                <button className="text-advertencia text-[10px] font-bold uppercase mt-2 hover:underline tracking-wider">
-                  Contactar Proveedor
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Modal - Nuevo Pedido */}
-      {modalAbierto && (
+      {/* MODAL - NUEVO PEDIDO */}
+      {modalPedidoOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-ibm-plex text-white">
             <div className="p-6 border-b border-[#2D3748] flex justify-between items-center bg-[#161B27]/40">
-              <h3 className="font-rajdhani text-xl font-bold text-acento">Crear Pedido de Reposición</h3>
+              <h3 className="font-rajdhani text-xl font-bold text-[#F97316]">Crear Orden de Compra</h3>
               <button
-                onClick={() => setModalAbierto(false)}
-                className="text-texto-secundario hover:text-texto-principal transition-colors"
+                onClick={() => setModalPedidoOpen(false)}
+                className="text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
               >
                 <span className="material-symbols-outlined">close</span>
               </button>
             </div>
-            <form onSubmit={handleCrearPedido} className="p-6 space-y-4">
+
+            <form onSubmit={handleCrearOrden} className="p-6 space-y-6">
+              {formError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400 font-semibold">
+                  {formError}
+                </div>
+              )}
+
+              {/* Proveedor selector */}
               <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-texto-secundario">Proveedor</label>
-                <input
-                  type="text"
+                <label className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8]">Seleccionar Proveedor</label>
+                <select
                   required
-                  value={nuevoPedido.proveedor}
-                  onChange={(e) => setNuevoPedido({ ...nuevoPedido, proveedor: e.target.value })}
-                  placeholder="Distribuidora Diesel S.A. u otros"
-                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs text-texto-principal py-2.5 px-3 focus:border-acento outline-none"
-                />
+                  value={selectedProveedorId}
+                  onChange={(e) => setSelectedProveedorId(e.target.value)}
+                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2.5 px-3 focus:border-[#F97316] outline-none text-white"
+                >
+                  <option value="">Seleccione un proveedor...</option>
+                  {proveedores.map((prov) => (
+                    <option key={prov.id} value={prov.id}>
+                      {prov.nombre_empresa} (RUC: {prov.ruc || 'S/N'})
+                    </option>
+                  ))}
+                </select>
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-texto-secundario">SKU / Repuesto</label>
-                <input
-                  type="text"
-                  required
-                  value={nuevoPedido.sku}
-                  onChange={(e) => setNuevoPedido({ ...nuevoPedido, sku: e.target.value })}
-                  placeholder="Ej. PK-MZ3-002"
-                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs text-texto-principal py-2.5 px-3 focus:border-acento outline-none"
-                />
+              {/* Add item fields */}
+              <div className="border border-[#2D3748] rounded-lg p-4 bg-[#161B27]/30 space-y-3">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Añadir Repuesto al Pedido</h4>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-[#94A3B8]">Repuesto</label>
+                    <select
+                      value={tempRepuestoId}
+                      onChange={(e) => {
+                        const idVal = e.target.value;
+                        setTempRepuestoId(idVal);
+                        const matched = repuestos.find(r => r.id === parseInt(idVal));
+                        if (matched) {
+                          setTempCosto(parseFloat(matched.precio_costo as string || '0').toString());
+                        }
+                      }}
+                      className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2 px-2.5 outline-none text-white"
+                    >
+                      <option value="">Seleccione repuesto...</option>
+                      {repuestos.map((rep) => (
+                        <option key={rep.id} value={rep.id}>
+                          {rep.nombre_repuesto} (Stock: {rep.cantidad_stock})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-[#94A3B8]">Cantidad</label>
+                    <input
+                      type="number"
+                      min="1"
+                      value={tempCantidad}
+                      onChange={(e) => setTempCantidad(e.target.value)}
+                      className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2 px-2.5 outline-none text-white"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[9px] uppercase font-bold text-[#94A3B8]">Costo Unitario ($)</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={tempCosto}
+                      onChange={(e) => setTempCosto(e.target.value)}
+                      className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2 px-2.5 outline-none text-white"
+                    />
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleAddItemToCart}
+                  disabled={!tempRepuestoId}
+                  className="px-3 py-1.5 bg-[#2D3748] hover:bg-[#F97316] disabled:opacity-40 disabled:hover:bg-[#2D3748] text-white rounded text-xs font-bold transition-all w-full uppercase"
+                >
+                  Agregar a la Lista
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-texto-secundario">Cantidad</label>
-                  <input
-                    type="number"
-                    min="1"
-                    required
-                    value={nuevoPedido.cantidad}
-                    onChange={(e) => setNuevoPedido({ ...nuevoPedido, cantidad: parseInt(e.target.value) || 1 })}
-                    className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs text-texto-principal py-2.5 px-3 focus:border-acento outline-none"
-                  />
+              {/* Items List Table */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-white uppercase tracking-wider">Lista de Repuestos Solicitados</h4>
+                <div className="overflow-x-auto rounded-lg border border-[#2D3748] bg-[#161B27]/40 max-h-48 overflow-y-auto">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-[#161B27] border-b border-[#2D3748]">
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold">Repuesto</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold text-center">Cantidad</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold">Costo Unit.</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold text-right">Subtotal</th>
+                        <th className="px-4 py-2 text-right"></th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#2D3748]">
+                      {pedidoItems.length > 0 ? (
+                        pedidoItems.map((item, idx) => {
+                          const rep = repuestos.find(r => r.id === item.id_repuesto);
+                          const subtotal = item.cantidad * item.precio_costo;
+                          return (
+                            <tr key={idx} className="hover:bg-white/5">
+                              <td className="px-4 py-2 font-medium">{rep?.nombre_repuesto || `Repuesto ID: ${item.id_repuesto}`}</td>
+                              <td className="px-4 py-2 text-center font-semibold">{item.cantidad}</td>
+                              <td className="px-4 py-2">${item.precio_costo.toFixed(2)}</td>
+                              <td className="px-4 py-2 text-right font-bold">${subtotal.toFixed(2)}</td>
+                              <td className="px-4 py-2 text-right">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveItemFromCart(idx)}
+                                  className="text-red-400 hover:text-red-600 transition-colors"
+                                >
+                                  <span className="material-symbols-outlined text-lg">delete</span>
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })
+                      ) : (
+                        <tr>
+                          <td colSpan={5} className="px-4 py-6 text-center text-[#94A3B8] italic">No hay repuestos en el pedido.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] uppercase font-bold tracking-wider text-texto-secundario">Precio Unit. (Costo)</label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    required
-                    value={nuevoPedido.precioCosto}
-                    onChange={(e) => setNuevoPedido({ ...nuevoPedido, precioCosto: parseFloat(e.target.value) || 0 })}
-                    className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs text-texto-principal py-2.5 px-3 focus:border-acento outline-none"
-                  />
-                </div>
+                {pedidoItems.length > 0 && (
+                  <div className="text-right text-sm font-bold text-white pt-2">
+                    Total Estimado de Compra: <span className="text-[#F97316] text-base font-mono">${calculateCartTotal().toFixed(2)}</span>
+                  </div>
+                )}
               </div>
 
               <div className="pt-4 border-t border-[#2D3748] flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setModalAbierto(false)}
-                  className="px-4 py-2 rounded-lg border border-[#2D3748] text-[#F1F5F9] text-xs font-semibold uppercase tracking-wider hover:bg-[#161B27] transition-all"
+                  onClick={() => setModalPedidoOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-[#2D3748] text-slate-300 text-xs font-semibold uppercase tracking-wider hover:bg-white/5 transition-all"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 rounded-lg bg-acento text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#EA6C0A] transition-all"
+                  className="px-4 py-2 rounded-lg bg-[#F97316] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#EA6C0A] transition-all"
                 >
                   Crear Pedido
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - DETALLES Y ACCIONES DE ORDEN */}
+      {modalDetalleOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl max-w-2xl w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-ibm-plex text-white">
+            <div className="p-6 border-b border-[#2D3748] flex justify-between items-center bg-[#161B27]/40">
+              <div>
+                <h3 className="font-rajdhani text-xl font-bold text-[#F97316] uppercase">Detalle de Pedido</h3>
+                <p className="text-xs text-[#94A3B8] font-mono mt-0.5">Orden: {selectedOrder.numero_orden}</p>
+              </div>
+              <button
+                onClick={() => setModalDetalleOpen(false)}
+                className="text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <div className="p-6 space-y-6 max-h-[70vh] overflow-y-auto">
+              <div className="grid grid-cols-2 gap-4 text-xs border-b border-[#2D3748] pb-4">
+                <div>
+                  <p className="text-[#94A3B8] font-bold uppercase text-[9px] tracking-wider">Proveedor</p>
+                  <p className="text-sm font-bold mt-1 text-white">{selectedOrder.nombre_empresa}</p>
+                  <p className="text-[#94A3B8] mt-0.5">RUC: {selectedOrder.ruc || 'S/N'}</p>
+                  <p className="text-[#94A3B8]">{selectedOrder.email || ''}</p>
+                </div>
+                <div>
+                  <p className="text-[#94A3B8] font-bold uppercase text-[9px] tracking-wider">Metadatos de Control</p>
+                  <p className="mt-1 text-white">Estado: <span className="font-bold text-[#F97316] uppercase">{selectedOrder.estado}</span></p>
+                  <p className="text-[#94A3B8] mt-0.5">Creado por: {selectedOrder.creador_nombre}</p>
+                  {selectedOrder.aprobador_nombre && (
+                    <p className="text-[#94A3B8]">Aprobado por: {selectedOrder.aprobador_nombre}</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Items List Table */}
+              <div className="space-y-2">
+                <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider">Repuestos Comprendidos</h4>
+                <div className="overflow-x-auto rounded-lg border border-[#2D3748] bg-[#161B27]/40">
+                  <table className="w-full text-left border-collapse text-xs">
+                    <thead>
+                      <tr className="bg-[#161B27] border-b border-[#2D3748]">
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold">Repuesto</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold">SKU</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold text-center">Cantidad</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold">Costo Unit.</th>
+                        <th className="px-4 py-2 text-[#94A3B8] font-bold text-right">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-[#2D3748] text-slate-300">
+                      {selectedOrderDetails.map((item) => (
+                        <tr key={item.id}>
+                          <td className="px-4 py-2.5 font-medium">{item.nombre_repuesto}</td>
+                          <td className="px-4 py-2.5 font-mono text-[10px]">{item.sku}</td>
+                          <td className="px-4 py-2.5 text-center font-bold">{item.cantidad}</td>
+                          <td className="px-4 py-2.5">${parseFloat(item.precio_costo as string).toFixed(2)}</td>
+                          <td className="px-4 py-2.5 text-right font-bold">${parseFloat(item.subtotal_linea as string).toFixed(2)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="text-right text-sm font-bold text-white pt-2">
+                  Total Adquisición: <span className="text-[#F97316] text-base font-mono">
+                    ${selectedOrderDetails.reduce((sum, item) => sum + parseFloat(item.subtotal_linea as string), 0).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              {/* State Machine Transition Actions (Admin only) */}
+              {isAdmin && (
+                <div className="border-t border-[#2D3748] pt-4 space-y-3">
+                  <h4 className="text-xs font-bold text-[#94A3B8] uppercase tracking-wider">Acciones del Administrador (Transición de Estados)</h4>
+                  <div className="flex flex-wrap gap-3">
+                    {selectedOrder.estado === 'pendiente' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleTransitionState('aprobado')}
+                          className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-blue-600/15"
+                        >
+                          <span className="material-symbols-outlined text-sm">check_circle</span>
+                          Aprobar Pedido
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTransitionState('cancelado')}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-red-600/15"
+                        >
+                          <span className="material-symbols-outlined text-sm">cancel</span>
+                          Cancelar Pedido
+                        </button>
+                      </>
+                    )}
+
+                    {selectedOrder.estado === 'aprobado' && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleTransitionState('recibido')}
+                          className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-green-600/15"
+                        >
+                          <span className="material-symbols-outlined text-sm">done_all</span>
+                          Marcar como Recibido (Cargar Inventario)
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleTransitionState('cancelado')}
+                          className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded text-xs font-bold transition-all flex items-center gap-1 shadow-md shadow-red-600/15"
+                        >
+                          <span className="material-symbols-outlined text-sm">cancel</span>
+                          Cancelar Pedido
+                        </button>
+                      </>
+                    )}
+
+                    {(selectedOrder.estado === 'recibido' || selectedOrder.estado === 'cancelado') && (
+                      <p className="text-xs text-[#94A3B8] italic">Esta orden ha finalizado su ciclo de vida y no admite más transiciones.</p>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="p-6 border-t border-[#2D3748] flex justify-end bg-[#161B27]/20">
+              <button
+                type="button"
+                onClick={() => setModalDetalleOpen(false)}
+                className="px-4 py-2 rounded-lg bg-[#2D3748] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#F97316] transition-all"
+              >
+                Cerrar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL - PROVEEDOR FORM (CREATE/EDIT) */}
+      {modalProveedorOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1E2433] border border-[#2D3748] rounded-xl max-w-md w-full shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200 font-ibm-plex text-white">
+            <div className="p-6 border-b border-[#2D3748] flex justify-between items-center bg-[#161B27]/40">
+              <h3 className="font-rajdhani text-xl font-bold text-[#F97316]">
+                {formProveedor.id ? 'Modificar Proveedor' : 'Agregar Nuevo Proveedor'}
+              </h3>
+              <button
+                onClick={() => setModalProveedorOpen(false)}
+                className="text-[#94A3B8] hover:text-[#F1F5F9] transition-colors"
+              >
+                <span className="material-symbols-outlined">close</span>
+              </button>
+            </div>
+
+            <form onSubmit={handleSubmitProveedor} className="p-6 space-y-4">
+              {formError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg text-xs text-red-400 font-semibold">
+                  {formError}
+                </div>
+              )}
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8]">Nombre de la Empresa</label>
+                <input
+                  type="text"
+                  required
+                  value={formProveedor.nombre_empresa}
+                  onChange={(e) => setFormProveedor({ ...formProveedor, nombre_empresa: e.target.value })}
+                  placeholder="Ej. Distribuidora Central C.A."
+                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2.5 px-3 focus:border-[#F97316] outline-none text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8]">RUC / Identificación Fiscal</label>
+                <input
+                  type="text"
+                  value={formProveedor.ruc}
+                  onChange={(e) => setFormProveedor({ ...formProveedor, ruc: e.target.value })}
+                  placeholder="Ej. 1790000001001"
+                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2.5 px-3 focus:border-[#F97316] outline-none text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8]">Correo de Contacto</label>
+                <input
+                  type="email"
+                  value={formProveedor.email}
+                  onChange={(e) => setFormProveedor({ ...formProveedor, email: e.target.value })}
+                  placeholder="ejemplo@proveedor.com"
+                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2.5 px-3 focus:border-[#F97316] outline-none text-white"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-[10px] uppercase font-bold tracking-wider text-[#94A3B8]">Teléfono</label>
+                <input
+                  type="text"
+                  value={formProveedor.telefono}
+                  onChange={(e) => setFormProveedor({ ...formProveedor, telefono: e.target.value })}
+                  placeholder="Ej. +593 99 999 9999"
+                  className="w-full bg-[#161B27] border border-[#2D3748] rounded-lg text-xs py-2.5 px-3 focus:border-[#F97316] outline-none text-white"
+                />
+              </div>
+
+              <div className="pt-4 border-t border-[#2D3748] flex justify-end gap-3">
+                <button
+                  type="button"
+                  onClick={() => setModalProveedorOpen(false)}
+                  className="px-4 py-2 rounded-lg border border-[#2D3748] text-slate-300 text-xs font-semibold uppercase tracking-wider hover:bg-white/5 transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-lg bg-[#F97316] text-white text-xs font-semibold uppercase tracking-wider hover:bg-[#EA6C0A] transition-all"
+                >
+                  {formProveedor.id ? 'Actualizar' : 'Registrar'}
                 </button>
               </div>
             </form>
