@@ -39,3 +39,7 @@ pnpm-debug.log*
 # Sistema operativo
 .DS_Store
 Thumbs.db
+
+# Reportes de cobertura
+coverage/
+**/coverage/

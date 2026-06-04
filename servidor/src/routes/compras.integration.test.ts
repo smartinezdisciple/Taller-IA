@@ -6,7 +6,6 @@ import { pool } from '../config/db.js';
 describe('Compras and Reportes Endpoints Integration Tests', () => {
   let adminToken = '';
   let compradorToken = '';
-  let vendedorToken = '';
 
   let supplierId = 0;
   let repuestoId = 0;
@@ -25,12 +24,6 @@ describe('Compras and Reportes Endpoints Integration Tests', () => {
       contrasena: 'Taller123!_Pro'
     });
     compradorToken = compradorLogin.body.accessToken;
-
-    const vendedorLogin = await request(app).post('/api/auth/login').send({
-      nombre_usuario: 'vendedor',
-      contrasena: 'Taller123!_Pro'
-    });
-    vendedorToken = vendedorLogin.body.accessToken;
 
     // 2. Insert test supplier
     const supplierRes = await pool.query(
